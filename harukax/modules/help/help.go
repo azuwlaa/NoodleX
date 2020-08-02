@@ -22,6 +22,7 @@ import (
 	"log"
 	"regexp"
 
+	"github.com/HarukaNetwork/HarukaX/harukax"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/error_handling"
 	"github.com/PaulSonOfLars/gotgbot"
 	"github.com/PaulSonOfLars/gotgbot/ext"
@@ -53,7 +54,7 @@ func initMarkdownHelp() {
 
 func initHelpButtons() {
 	helpButtons := [][]ext.InlineKeyboardButton{make([]ext.InlineKeyboardButton, 2), make([]ext.InlineKeyboardButton, 2),
-		make([]ext.InlineKeyboardButton, 2), make([]ext.InlineKeyboardButton, 2), make([]ext.InlineKeyboardButton, 2)}
+		make([]ext.InlineKeyboardButton, 2), make([]ext.InlineKeyboardButton, 2), make([]ext.InlineKeyboardButton, 2), make([]ext.InlineKeyboardButton, 1)}
 
 	// First column
 	helpButtons[0][0] = ext.InlineKeyboardButton{
@@ -75,6 +76,10 @@ func initHelpButtons() {
 	helpButtons[4][0] = ext.InlineKeyboardButton{
 		Text:         "Federations",
 		CallbackData: fmt.Sprintf("help(%v)", "feds"),
+	}
+	helpButtons[5][0] = ext.InlineKeyboardButton{
+		Text:         "Stickers",
+		CallbackData: fmt.Sprintf("help(%v)", "stickers"),
 	}
 
 	// Second column
@@ -103,7 +108,7 @@ func initHelpButtons() {
 }
 
 func help(b ext.Bot, u *gotgbot.Update) error {
-	msg := b.NewSendableMessage(u.EffectiveChat.Id, "Hey there! I'm Haruka X, a group management bot written in Go."+
+	msg := b.NewSendableMessage(u.EffectiveChat.Id, "Hey there! I'm Dazai-san, a group management bot written in Go."+
 		"I have a ton of useful features like notes, filters and even a warn system.\n\n"+
 		"Commands are preceded with a slash  (/) or an exclamation mark (!)\n\n"+
 		"Some basic commands:\n\n"+
@@ -190,11 +195,30 @@ func buttonHandler(b ext.Bot, u *gotgbot.Update) error {
 			msg.Text = "Here is the help for the <b>Purges</b> module:\n\n" +
 				"<b>Admin only:</b>\n" +
 				" - /del: deletes the message you replied to\n" +
-				" - /purge: deletes all messages between this and the replied to message.\n"
+				" - /purge: deletes all messages between this and the replied to message.\n" +
+				html.EscapeString(" - /purge <amount>: number of messages to delete from the replied to message.\n")
 			break
 		case "feds":
 			break
 		case "misc":
+			msg.Text = "An \"odds and ends\" module for small, simple commands which don't really fit anywhere:\n\n" +
+				"- /id: get the current group id. If used by replying to a message, gets that user's id.\n" +
+				"- /ping: get server respond time to google.com.\n" +
+				"- /runs: reply a random string from an array of replies.\n" +
+				"- <strike>/tl: use as reply or translate using text from any language to English.<b>(WIP)</b></strike>\n" +
+				"- <strike>/rmkeyboard: removes nasty keyboard buttons from chat.<b>(WIP)</b></strike>\n" +
+				"- <strike>/first: scrolls to first message of chat.<b>(WIP)</b></strike>\n" +
+				"- <strike>/s: saves the message you reply to your chat with the bot.<b>(WIP)</b></strike>\n" +
+				"- <strike>/slap: slap a user, or get slapped if not a reply.<b>(WIP)</b></strike>\n" +
+				"- <strike>/hug: hug a user, or get hugged if not a reply.<b>(WIP)</b></strike>\n" +
+				"- <strike>/kiss: kiss a user, or get kissed if not a reply.<b>(WIP)</b></strike>\n" +
+				"- <strike>/punch: punch a user, or get punched if not a reply.<b>(WIP)</b></strike>\n" +
+				"- /info: get information about a user.\n" +
+				"- Hi {}: responds to user (to disable greet `/disable botgreet`; to enable greet `/enable botgreet`)\n" +
+				"- <strike>/markdownhelp: quick summary of how markdown works in telegram - can only be called in private chats.<b>(WIP)</b></strike>\n" +
+				"- <strike>y/n: get randomised answers to a question.<b>(WIP)</b></strike>\n" +
+				"- <strike>/tts: convert texts to speech.<b>(WIP)</b></strike>\n" +
+				"- <strike>/gifid: get GIF file id.<b>(WIP)</b></strike>"
 			break
 		case "muting":
 			msg.Text = "Here is the help for the <b>Muting</b> module:\n\n" +
@@ -239,7 +263,7 @@ func buttonHandler(b ext.Bot, u *gotgbot.Update) error {
 					"Else, will just kick.\n")
 			break
 		case "back":
-			msg.Text = "Hey there! I'm Haruka X, a group management bot written in Go." +
+			msg.Text = "Hey there! I'm Dazai-san, a group management bot written in Go." +
 				"I have a ton of useful features like notes, filters and even a warn system.\n\n" +
 				"Commands are preceded with a slash (/) or an exclamation mark (!)\n\n" +
 				"Some basic commands:\n\n" +
@@ -250,6 +274,16 @@ func buttonHandler(b ext.Bot, u *gotgbot.Update) error {
 				"Have fun using me!"
 			msg.ReplyMarkup = &markup
 			break
+		case "stickers":
+			msg.Text = "Kanging or fetching ID of stickers are made easy! " +
+				"With this stickers command you can easily get the png file " +
+				"or tgs file for creating new sticker packs or fetch the ID of stickers.\n\n" +
+				"<b>NOTE:</b>\n" +
+				"Animated stickers are also supported!\n\n" +
+				"- /stickerid: reply to a sticker to me to tell you its file ID.\n" +
+				"- /getsticker: reply to a sticker to me to upload its raw PNG file.\n" +
+				"- /kang: reply to a sticker to add it to your pack. Animated stickers are also supported!"
+			msg.ParseMode = parsemode.Html
 		}
 
 		_, err := msg.Send()
@@ -264,7 +298,7 @@ func LoadHelp(u *gotgbot.Updater) {
 	defer log.Println("Loading module help")
 	initHelpButtons()
 	initMarkdownHelp()
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("help", []rune{'/', '!'}, help))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("help", harukax.BotConfig.Prefix, help))
 	u.Dispatcher.AddHandler(handlers.NewCallback("help", buttonHandler))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("markdownhelp", []rune{'/', '!'}, markdownHelp))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("markdownhelp", harukax.BotConfig.Prefix, markdownHelp))
 }
