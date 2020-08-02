@@ -23,6 +23,7 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/HarukaNetwork/HarukaX/harukax"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/sql"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/chat_status"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/extraction"
@@ -219,15 +220,15 @@ var TextAndGroupFilter handlers.FilterFunc = func(message *ext.Message) bool {
 
 func LoadWarns(u *gotgbot.Updater) {
 	defer log.Println("Loading module warns")
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("warn", []rune{'/', '!'}, warnUser))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("warn", harukax.BotConfig.Prefix, warnUser))
 	u.Dispatcher.AddHandler(handlers.NewCallback("rmWarn", button))
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("resetwarns", []rune{'/', '!'}, resetWarns))
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("warns", []rune{'/', '!'}, warns))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("addwarn", []rune{'/', '!'}, addWarnFilter))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("nowarn", []rune{'/', '!'}, removeWarnFilter))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("rmwarn", []rune{'/', '!'}, removeWarnFilter)) // Just an alias for nowarn
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("warnlist", []rune{'/', '!'}, listWarnFilters))
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("warnlimit", []rune{'/', '!'}, setWarnLimit))
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("strongwarn", []rune{'/', '!'}, setWarnStrength))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("resetwarns", harukax.BotConfig.Prefix, resetWarns))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("warns", harukax.BotConfig.Prefix, warns))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("addwarn", harukax.BotConfig.Prefix, addWarnFilter))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("nowarn", harukax.BotConfig.Prefix, removeWarnFilter))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("rmwarn", harukax.BotConfig.Prefix, removeWarnFilter)) // Just an alias for nowarn
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("warnlist", harukax.BotConfig.Prefix, listWarnFilters))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("warnlimit", harukax.BotConfig.Prefix, setWarnLimit))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("strongwarn", harukax.BotConfig.Prefix, setWarnStrength))
 	u.Dispatcher.AddHandlerToGroup(handlers.NewMessage(TextAndGroupFilter, replyFilter), 9)
 }

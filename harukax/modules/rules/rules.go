@@ -22,6 +22,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/HarukaNetwork/HarukaX/harukax"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/sql"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/helpers"
 	tg_md2html "github.com/PaulSonOfLars/gotg_md2html"
@@ -96,7 +97,7 @@ func clearRules(_ ext.Bot, u *gotgbot.Update) error {
 }
 
 func LoadRules(u *gotgbot.Updater) {
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("rules", []rune{'/', '!'}, sendRules))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("setrules", []rune{'/', '!'}, setRules))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("clearrules", []rune{'/', '!'}, clearRules))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("rules", harukax.BotConfig.Prefix, sendRules))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("setrules", harukax.BotConfig.Prefix, setRules))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("clearrules", harukax.BotConfig.Prefix, clearRules))
 }

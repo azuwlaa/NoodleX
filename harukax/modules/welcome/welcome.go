@@ -38,12 +38,15 @@ import (
 var EnumFuncMap = map[int]func(ext.Bot, int, string) (*ext.Message, error){
 	sql.TEXT:        ext.Bot.SendMessage,
 	sql.BUTTON_TEXT: ext.Bot.SendMessage,
-	sql.STICKER:     ext.Bot.SendStickerStr,
-	sql.DOCUMENT:    ext.Bot.SendDocumentStr,
-	sql.PHOTO:       ext.Bot.SendPhotoStr,
-	sql.AUDIO:       ext.Bot.SendAudioStr,
-	sql.VOICE:       ext.Bot.SendVoiceStr,
-	sql.VIDEO:       ext.Bot.SendVideoStr,
+}
+
+var EnumFuncMap1 = map[int]func(ext.Bot, int, ext.InputFile) (*ext.Message, error){
+	sql.STICKER:  ext.Bot.SendSticker,
+	sql.DOCUMENT: ext.Bot.SendDocument,
+	sql.PHOTO:    ext.Bot.SendPhoto,
+	sql.AUDIO:    ext.Bot.SendAudio,
+	sql.VOICE:    ext.Bot.SendVoice,
+	sql.VIDEO:    ext.Bot.SendVideo,
 }
 
 func send(bot ext.Bot, u *gotgbot.Update, message string, keyboard *ext.InlineKeyboardMarkup, backupMessage string, reply bool) *ext.Message {

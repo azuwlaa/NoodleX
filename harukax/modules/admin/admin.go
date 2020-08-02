@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/HarukaNetwork/HarukaX/harukax"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/chat_status"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/error_handling"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/extraction"
@@ -272,10 +273,10 @@ func adminlist(_ ext.Bot, u *gotgbot.Update) error {
 
 func LoadAdmin(u *gotgbot.Updater) {
 	defer log.Println("Loading module admin")
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("promote", []rune{'/', '!'}, promote))
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("demote", []rune{'/', '!'}, demote))
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("pin", []rune{'/', '!'}, pin))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("unpin", []rune{'/', '!'}, unpin))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("invitelink", []rune{'/', '!'}, invitelink))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("adminlist", []rune{'/', '!'}, adminlist))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("promote", harukax.BotConfig.Prefix, promote))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("demote", harukax.BotConfig.Prefix, demote))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("pin", harukax.BotConfig.Prefix, pin))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("unpin", harukax.BotConfig.Prefix, unpin))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("invitelink", harukax.BotConfig.Prefix, invitelink))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("adminlist", harukax.BotConfig.Prefix, adminlist))
 }

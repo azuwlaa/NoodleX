@@ -24,6 +24,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/HarukaNetwork/HarukaX/harukax"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/sql"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/chat_status"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/error_handling"
@@ -198,10 +199,10 @@ var blacklistMessage = handlers.NewMessage(customFilter, delBlacklist)
 
 func LoadBlacklist(u *gotgbot.Updater) {
 	defer log.Println("Loading module blacklist")
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("blacklist", []rune{'/', '!'}, blacklist))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("addblacklist", []rune{'/', '!'}, addBlacklist))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("rmblacklist", []rune{'/', '!'}, unblacklist))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("unblacklist", []rune{'/', '!'}, unblacklist))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("blacklist", harukax.BotConfig.Prefix, blacklist))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("addblacklist", harukax.BotConfig.Prefix, addBlacklist))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("rmblacklist", harukax.BotConfig.Prefix, unblacklist))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("unblacklist", harukax.BotConfig.Prefix, unblacklist))
 	blacklistMessage.AllowEdited = true
 	u.Dispatcher.AddHandlerToGroup(blacklistMessage, 11)
 }

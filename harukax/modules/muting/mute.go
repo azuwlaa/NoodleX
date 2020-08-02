@@ -20,6 +20,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/HarukaNetwork/HarukaX/harukax"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/chat_status"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/error_handling"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/extraction"
@@ -173,7 +174,7 @@ func tempMute(bot ext.Bot, u *gotgbot.Update, args []string) error {
 
 func LoadMuting(u *gotgbot.Updater) {
 	defer log.Println("Loading module muting")
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("mute", []rune{'/', '!'}, mute))
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("unmute", []rune{'/', '!'}, unmute))
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("tmute", []rune{'/', '!'}, tempMute))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("mute", harukax.BotConfig.Prefix, mute))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("unmute", harukax.BotConfig.Prefix, unmute))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("tmute", harukax.BotConfig.Prefix, tempMute))
 }

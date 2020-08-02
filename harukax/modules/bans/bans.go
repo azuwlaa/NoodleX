@@ -20,6 +20,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/HarukaNetwork/HarukaX/harukax"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/chat_status"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/error_handling"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/extraction"
@@ -73,7 +74,7 @@ func ban(bot ext.Bot, u *gotgbot.Update, args []string) error {
 	}
 
 	if userId == bot.Id {
-		_, err := message.ReplyText("No u")
+		_, err := message.ReplyText("Nani kore?")
 		return err
 	}
 
@@ -82,7 +83,7 @@ func ban(bot ext.Bot, u *gotgbot.Update, args []string) error {
 		return err
 	}
 
-	_, err = message.ReplyText("Banned!")
+	_, err = message.ReplyText("User has been shoo shoo!")
 	return err
 }
 
@@ -130,7 +131,7 @@ func tempBan(bot ext.Bot, u *gotgbot.Update, args []string) error {
 	}
 
 	if userId == bot.Id {
-		_, err := message.ReplyText("No u")
+		_, err := message.ReplyText("Nani kore?")
 		return err
 	}
 
@@ -201,7 +202,7 @@ func kick(bot ext.Bot, u *gotgbot.Update, args []string) error {
 	}
 
 	if userId == bot.Id {
-		_, err := message.ReplyText("No u")
+		_, err := message.ReplyText("Nani kore?")
 		return err
 	}
 
@@ -210,7 +211,7 @@ func kick(bot ext.Bot, u *gotgbot.Update, args []string) error {
 		_, err = message.ReplyText("Hec, I can't seem to kick this user.")
 		return err
 	}
-	_, err = message.ReplyText("Kicked!")
+	_, err = message.ReplyText("Shoo shoo!")
 	return err
 }
 
@@ -296,9 +297,9 @@ func unban(bot ext.Bot, u *gotgbot.Update, args []string) error {
 
 func LoadBans(u *gotgbot.Updater) {
 	defer log.Println("Loading module bans")
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("tban", []rune{'/', '!'}, tempBan))
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("ban", []rune{'/', '!'}, ban))
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("kick", []rune{'/', '!'}, kick))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("kickme", []rune{'/', '!'}, kickme))
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("unban", []rune{'/', '!'}, unban))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("tban", harukax.BotConfig.Prefix, tempBan))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("ban", harukax.BotConfig.Prefix, ban))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("kick", harukax.BotConfig.Prefix, kick))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("kickme", harukax.BotConfig.Prefix, kickme))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("unban", harukax.BotConfig.Prefix, unban))
 }
