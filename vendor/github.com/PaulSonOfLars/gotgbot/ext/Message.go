@@ -6,15 +6,19 @@ import (
 	"html"
 	"strconv"
 	"strings"
+	"unicode"
 	"unicode/utf16"
+
+	"github.com/PaulSonOfLars/gotgbot/parsemode"
 )
 
 type MessageEntity struct {
-	Type   string `json:"type"`
-	Offset int    `json:"offset"`
-	Length int    `json:"length"`
-	Url    string `json:"url"`
-	User   *User  `json:"user"`
+	Type     string `json:"type"`
+	Offset   int    `json:"offset"`
+	Length   int    `json:"length"`
+	Url      string `json:"url"`
+	User     *User  `json:"user"`
+	Language string `json:"language"`
 }
 
 type ParsedMessageEntity struct {
@@ -27,22 +31,23 @@ type ParsedMessageEntity struct {
 }
 
 type Audio struct {
-	FileId       string `json:"file_id"`
-	FileUniqueId string `json:"file_unique_id"`
-	Duration     int    `json:"duration"`
-	Performer    string `json:"performer"`
-	Title        string `json:"title"`
-	MimeType     string `json:"mime_type"`
-	FileSize     int    `json:"file_size"`
+	FileId       string     `json:"file_id"`
+	FileUniqueId string     `json:"file_unique_id"`
+	Duration     int        `json:"duration"`
+	Performer    string     `json:"performer"`
+	Title        string     `json:"title"`
+	MimeType     string     `json:"mime_type"`
+	FileSize     int        `json:"file_size"`
+	Thumb        *PhotoSize `json:"thumb"`
 }
 
 type Document struct {
-	FileId       string    `json:"file_id"`
-	FileUniqueId string    `json:"file_unique_id"`
-	Thumb        PhotoSize `json:"thumb"`
-	FileName     string    `json:"file_name"`
-	MimeType     string    `json:"mime_type"`
-	FileSize     int       `json:"file_size"`
+	FileId       string     `json:"file_id"`
+	FileUniqueId string     `json:"file_unique_id"`
+	Thumb        *PhotoSize `json:"thumb"`
+	FileName     string     `json:"file_name"`
+	MimeType     string     `json:"mime_type"`
+	FileSize     int        `json:"file_size"`
 }
 
 type PhotoSize struct {
@@ -54,14 +59,14 @@ type PhotoSize struct {
 }
 
 type Video struct {
-	FileId       string    `json:"file_id"`
-	FileUniqueId string    `json:"file_unique_id"`
-	Width        int       `json:"width"`
-	Height       int       `json:"height"`
-	Duration     int       `json:"duration"`
-	Thumb        PhotoSize `json:"thumb"`
-	MimeType     string    `json:"mime_type"`
-	FileSize     int       `json:"file_size"`
+	FileId       string     `json:"file_id"`
+	FileUniqueId string     `json:"file_unique_id"`
+	Width        int        `json:"width"`
+	Height       int        `json:"height"`
+	Duration     int        `json:"duration"`
+	Thumb        *PhotoSize `json:"thumb"`
+	MimeType     string     `json:"mime_type"`
+	FileSize     int        `json:"file_size"`
 }
 
 type Voice struct {
@@ -73,12 +78,12 @@ type Voice struct {
 }
 
 type VideoNote struct {
-	FileId       string    `json:"file_id"`
-	FileUniqueId string    `json:"file_unique_id"`
-	Length       int       `json:"length"`
-	Duration     int       `json:"duration"`
-	Thumb        PhotoSize `json:"thumb"`
-	FileSize     int       `json:"file_size"`
+	FileId       string     `json:"file_id"`
+	FileUniqueId string     `json:"file_unique_id"`
+	Length       int        `json:"length"`
+	Duration     int        `json:"duration"`
+	Thumb        *PhotoSize `json:"thumb"`
+	FileSize     int        `json:"file_size"`
 }
 
 type Contact struct {
@@ -116,11 +121,33 @@ type PollOption struct {
 }
 
 type Poll struct {
-	Bot      Bot          `json:"-"`
-	Id       string       `json:"id"`
-	Question string       `json:"question"`
-	Options  []PollOption `json:"options"`
-	IsClosed bool         `json:"is_closed"`
+	Bot                   Bot             `json:"-"`
+	Id                    string          `json:"id"`
+	Question              string          `json:"question"`
+	Options               []PollOption    `json:"options"`
+	TotalVoterCount       int             `json:"total_voter_count"`
+	IsClosed              bool            `json:"is_closed"`
+	IsAnonymous           bool            `json:"is_anonymous"`
+	Type                  string          `json:"type"`
+	AllowsMultipleAnswers bool            `json:"allows_multiple_answers"`
+	CorrectOptionId       int             `json:"correct_option_id"`
+	Explanation           string          `json:"explanation"`
+	ExplanationEntities   []MessageEntity `json:"explanation_entities"`
+	OpenPeriod            int             `json:"open_period"`
+	CloseDate             int             `json:"close_date"`
+}
+
+type PollAnswer struct {
+	Bot       Bot    `json:"-"`
+	PollId    string `json:"poll_id"`
+	User      *User  `json:"user"`
+	OptionIds []int  `json:"option_ids"`
+}
+
+type Dice struct {
+	Bot   Bot    `json:"-"`
+	Emoji string `json:"emoji"`
+	Value int    `json:"value"`
 }
 
 type Message struct {
@@ -136,6 +163,7 @@ type Message struct {
 	ForwardSenderName     string                `json:"forward_sender_name"`
 	ForwardDate           int                   `json:"forward_date"`
 	ReplyToMessage        *Message              `json:"reply_to_message"`
+	ViaBot                *User                 `json:"via_bot"`
 	EditDate              int                   `json:"edit_date"`
 	MediaGroupId          string                `json:"media_group_id"`
 	AuthorSignature       string                `json:"author_signature"`
@@ -156,6 +184,7 @@ type Message struct {
 	Location              *Location             `json:"location"`
 	Venue                 *Venue                `json:"venue"`
 	Poll                  *Poll                 `json:"poll"`
+	Dice                  *Dice                 `json:"dice"`
 	NewChatMembers        []User                `json:"new_chat_members"`
 	LeftChatMember        *User                 `json:"left_chat_member"`
 	NewChatTitle          string                `json:"new_chat_title"`
@@ -237,40 +266,64 @@ func (m Message) EditMarkdownf(format string, a ...interface{}) (*Message, error
 	return m.Bot.EditMessageMarkdown(m.Chat.Id, m.MessageId, fmt.Sprintf(format, a...))
 }
 
-func (m Message) ReplyAudioStr(audio string) (*Message, error) {
-	return m.Bot.ReplyAudioStr(m.Chat.Id, audio, m.MessageId)
+func (m Message) EditCaption(text string) (*Message, error) {
+	return m.Bot.EditMessageCaption(m.Chat.Id, m.MessageId, text)
 }
 
-func (m Message) ReplyDocumentStr(document string) (*Message, error) {
-	return m.Bot.ReplyDocumentStr(m.Chat.Id, document, m.MessageId)
+func (m Message) EditCaptionf(format string, a ...interface{}) (*Message, error) {
+	return m.Bot.EditMessageCaption(m.Chat.Id, m.MessageId, fmt.Sprintf(format, a...))
+}
+
+func (m Message) EditCaptionHTML(text string) (*Message, error) {
+	return m.Bot.editMessageCaption(m.Chat.Id, m.MessageId, text, nil, parsemode.Html)
+}
+
+func (m Message) EditCaptionHTMLf(format string, a ...interface{}) (*Message, error) {
+	return m.Bot.editMessageCaption(m.Chat.Id, m.MessageId, fmt.Sprintf(format, a...), nil, parsemode.Html)
+}
+
+func (m Message) EditCaptionMarkdown(text string) (*Message, error) {
+	return m.Bot.editMessageCaption(m.Chat.Id, m.MessageId, text, nil, parsemode.Markdown)
+}
+
+func (m Message) EditCaptionMarkdownf(format string, a ...interface{}) (*Message, error) {
+	return m.Bot.editMessageCaption(m.Chat.Id, m.MessageId, fmt.Sprintf(format, a...), nil, parsemode.Markdown)
+}
+
+func (m Message) ReplyAudio(audio InputFile) (*Message, error) {
+	return m.Bot.ReplyAudio(m.Chat.Id, audio, m.MessageId)
+}
+
+func (m Message) ReplyDocument(document InputFile) (*Message, error) {
+	return m.Bot.ReplyDocument(m.Chat.Id, document, m.MessageId)
 }
 
 func (m Message) ReplyLocation(latitude float64, longitude float64) (*Message, error) {
 	return m.Bot.ReplyLocation(m.Chat.Id, latitude, longitude, m.MessageId)
 }
 
-func (m Message) ReplyPhotoStr(photo string) (*Message, error) {
-	return m.Bot.ReplyPhotoStr(m.Chat.Id, photo, m.MessageId)
+func (m Message) ReplyPhoto(photo InputFile) (*Message, error) {
+	return m.Bot.ReplyPhoto(m.Chat.Id, photo, m.MessageId)
 }
 
-func (m Message) ReplyStickerStr(sticker string) (*Message, error) {
-	return m.Bot.ReplyStickerStr(m.Chat.Id, sticker, m.MessageId)
+func (m Message) ReplySticker(sticker InputFile) (*Message, error) {
+	return m.Bot.ReplySticker(m.Chat.Id, sticker, m.MessageId)
 }
 
 func (m Message) ReplyVenue(latitude float64, longitude float64, title string, address string) (*Message, error) {
 	return m.Bot.ReplyVenue(m.Chat.Id, latitude, longitude, title, address, m.MessageId)
 }
 
-func (m Message) ReplyVideoStr(video string) (*Message, error) {
-	return m.Bot.ReplyVideoStr(m.Chat.Id, video, m.MessageId)
+func (m Message) ReplyVideo(video InputFile) (*Message, error) {
+	return m.Bot.ReplyVideo(m.Chat.Id, video, m.MessageId)
 }
 
-func (m Message) ReplyVideoNoteStr(videoNote string) (*Message, error) {
-	return m.Bot.ReplyVideoNoteStr(m.Chat.Id, videoNote, m.MessageId)
+func (m Message) ReplyVideoNote(videoNote InputFile) (*Message, error) {
+	return m.Bot.ReplyVideoNote(m.Chat.Id, videoNote, m.MessageId)
 }
 
-func (m Message) ReplyVoiceStr(voice string) (*Message, error) {
-	return m.Bot.ReplyVoiceStr(m.Chat.Id, voice, m.MessageId)
+func (m Message) ReplyVoice(voice InputFile) (*Message, error) {
+	return m.Bot.ReplyVoice(m.Chat.Id, voice, m.MessageId)
 }
 
 func (m Message) Delete() (bool, error) {
@@ -365,6 +418,7 @@ var mdV2Map = map[string]string{
 	"bold":          "*",
 	"italic":        "_",
 	"code":          "`",
+	"pre":           "```",
 	"underline":     "__",
 	"strikethrough": "~",
 }
@@ -373,12 +427,17 @@ var htmlMap = map[string]string{
 	"bold":          "b",
 	"italic":        "i",
 	"code":          "code",
+	"pre":           "pre",
 	"underline":     "u",
 	"strikethrough": "s",
 }
 
 func (m *Message) OriginalText() string {
 	return m.originalMD()
+}
+
+func (m *Message) OriginalTextV2() string {
+	return m.originalMDV2()
 }
 
 func (m *Message) OriginalHTML() string {
@@ -423,6 +482,10 @@ func (m *Message) originalMDV2() string {
 
 func (m *Message) OriginalCaption() string {
 	return m.originalCaptionTextMD()
+}
+
+func (m *Message) OriginalCaptionV2() string {
+	return m.originalCaptionTextMDV2()
 }
 
 func (m *Message) OriginalCaptionHTML() string {
@@ -472,13 +535,18 @@ func getOrigMsgMD(utf16Data []uint16, ents []MessageEntity) string {
 	for _, ent := range getUpperEntities(ents) {
 		newPrev := ent.Offset + ent.Length
 		prevText := string(utf16.Decode(utf16Data[prev:ent.Offset]))
+
+		text := utf16.Decode(utf16Data[ent.Offset:newPrev])
+		pre, cleanCntnt, post := splitEdgeWhitespace(string(text))
+		cleanCntntRune := []rune(cleanCntnt)
+
 		switch ent.Type {
 		case "bold", "italic", "code":
-			out.WriteString(prevText + mdMap[ent.Type] + escapeContainedMDV1(utf16.Decode(utf16Data[ent.Offset:newPrev]), []rune(mdMap[ent.Type])) + mdMap[ent.Type])
+			out.WriteString(prevText + pre + mdMap[ent.Type] + escapeContainedMDV1(cleanCntntRune, []rune(mdMap[ent.Type])) + mdMap[ent.Type] + post)
 		case "text_mention":
-			out.WriteString(prevText + "[" + escapeContainedMDV1(utf16.Decode(utf16Data[ent.Offset:newPrev]), []rune("[]()")) + "](tg://user?id=" + strconv.Itoa(ent.User.Id) + ")")
+			out.WriteString(prevText + pre + "[" + escapeContainedMDV1(cleanCntntRune, []rune("[]()")) + "](tg://user?id=" + strconv.Itoa(ent.User.Id) + ")" + post)
 		case "text_link":
-			out.WriteString(prevText + "[" + escapeContainedMDV1(utf16.Decode(utf16Data[ent.Offset:newPrev]), []rune("[]()")) + "](" + ent.Url + ")")
+			out.WriteString(prevText + pre + "[" + escapeContainedMDV1(cleanCntntRune, []rune("[]()")) + "](" + ent.Url + ")" + post)
 		default:
 			continue
 		}
@@ -508,7 +576,7 @@ func getOrigMsgHTML(utf16Data []uint16, ents []MessageEntity) string {
 
 func getOrigMsgMDV2(utf16Data []uint16, ents []MessageEntity) string {
 	if len(ents) == 0 {
-		return escapeMarkdownV2String(string(utf16.Decode(utf16Data)))
+		return string(utf16.Decode(utf16Data))
 	}
 
 	bd := strings.Builder{}
@@ -519,20 +587,8 @@ func getOrigMsgMDV2(utf16Data []uint16, ents []MessageEntity) string {
 		prev = end
 	}
 
-	bd.WriteString(escapeMarkdownV2String(string(utf16.Decode(utf16Data[prev:]))))
+	bd.WriteString(string(utf16.Decode(utf16Data[prev:])))
 	return bd.String()
-}
-
-var allMdV2 = []string{"_", "*", "`", "~", "[", "]", "(", ")", "\\"} // __ is not necessary because of _
-var repl = strings.NewReplacer(func() (out []string) {
-	for _, x := range allMdV2 {
-		out = append(out, x, "\\"+x)
-	}
-	return out
-}()...)
-
-func escapeMarkdownV2String(s string) string {
-	return repl.Replace(s)
 }
 
 func fillNestedHTML(data []uint16, ent MessageEntity, start int, entities []MessageEntity) (string, int) {
@@ -544,7 +600,7 @@ func fillNestedHTML(data []uint16, ent MessageEntity, start int, entities []Mess
 	subPrev := ent.Offset
 	subEnd := ent.Offset
 	bd := strings.Builder{}
-	for _, e := range entities {
+	for _, e := range getUpperEntities(entities) {
 		if e.Offset < subEnd || e == ent {
 			continue
 		}
@@ -559,19 +615,19 @@ func fillNestedHTML(data []uint16, ent MessageEntity, start int, entities []Mess
 
 	bd.WriteString(html.EscapeString(string(utf16.Decode(data[subPrev:entEnd]))))
 
-	return writeFinalHTML(data, ent, 0, bd.String()), entEnd
+	return writeFinalHTML(data, ent, start, bd.String()), entEnd
 }
 
 func fillNestedMarkdownV2(data []uint16, ent MessageEntity, start int, entities []MessageEntity) (string, int) {
 	entEnd := ent.Offset + ent.Length
 	if len(entities) == 0 || entEnd < entities[0].Offset {
 		// no nesting; just return straight away and move to next.
-		return writeFinalMarkdownV2(data, ent, start, escapeMarkdownV2String(string(utf16.Decode(data[ent.Offset:entEnd])))), entEnd
+		return writeFinalMarkdownV2(data, ent, start, string(utf16.Decode(data[ent.Offset:entEnd]))), entEnd
 	}
 	subPrev := ent.Offset
 	subEnd := ent.Offset
 	bd := strings.Builder{}
-	for _, e := range entities {
+	for _, e := range getUpperEntities(entities) {
 		if e.Offset < subEnd || e == ent {
 			continue
 		}
@@ -584,9 +640,26 @@ func fillNestedMarkdownV2(data []uint16, ent MessageEntity, start int, entities 
 		subPrev = end
 	}
 
-	bd.WriteString(escapeMarkdownV2String(string(utf16.Decode(data[subPrev:entEnd]))))
+	bd.WriteString(string(utf16.Decode(data[subPrev:entEnd])))
 
-	return writeFinalMarkdownV2(data, ent, 0, bd.String()), entEnd
+	return writeFinalMarkdownV2(data, ent, start, bd.String()), entEnd
+}
+
+func splitEdgeWhitespace(text string) (pre string, cntnt string, post string) {
+	bd := strings.Builder{}
+	rText := []rune(text)
+	for i := 0; i < len(rText) && unicode.IsSpace(rText[i]); i++ {
+		bd.WriteRune(rText[i])
+	}
+	pre = bd.String()
+	text = strings.TrimPrefix(text, pre)
+
+	bd.Reset()
+	for i := len(rText) - 1; i >= 0 && unicode.IsSpace(rText[i]); i-- {
+		bd.WriteRune(rText[i])
+	}
+	post = bd.String()
+	return pre, strings.TrimSuffix(text, post), post
 }
 
 func writeFinalHTML(data []uint16, ent MessageEntity, start int, cntnt string) string {
@@ -594,6 +667,13 @@ func writeFinalHTML(data []uint16, ent MessageEntity, start int, cntnt string) s
 	switch ent.Type {
 	case "bold", "italic", "code", "underline", "strikethrough":
 		return prevText + "<" + htmlMap[ent.Type] + ">" + cntnt + "</" + htmlMap[ent.Type] + ">"
+	case "pre":
+		// <pre>text</pre>
+		if ent.Language == "" {
+			return prevText + "<pre>" + cntnt + "</pre>"
+		}
+		// <pre><code class="lang">text</code></pre>
+		return prevText + `<pre><code class="` + ent.Language + `">` + cntnt + "</code></pre>"
 	case "text_mention":
 		return prevText + `<a href="tg://user?id=` + strconv.Itoa(ent.User.Id) + `">` + cntnt + "</a>"
 	case "text_link":
@@ -604,14 +684,15 @@ func writeFinalHTML(data []uint16, ent MessageEntity, start int, cntnt string) s
 }
 
 func writeFinalMarkdownV2(data []uint16, ent MessageEntity, start int, cntnt string) string {
-	prevText := escapeMarkdownV2String(string(utf16.Decode(data[start:ent.Offset])))
+	prevText := string(utf16.Decode(data[start:ent.Offset]))
+	pre, cleanCntnt, post := splitEdgeWhitespace(cntnt)
 	switch ent.Type {
-	case "bold", "italic", "code", "underline", "strikethrough":
-		return prevText + mdV2Map[ent.Type] + cntnt + mdV2Map[ent.Type]
+	case "bold", "italic", "code", "underline", "strikethrough", "pre":
+		return prevText + pre + mdV2Map[ent.Type] + cleanCntnt + mdV2Map[ent.Type] + post
 	case "text_mention":
-		return prevText + "[" + cntnt + "](tg://user?id=" + strconv.Itoa(ent.User.Id) + ")"
+		return prevText + pre + "[" + cleanCntnt + "](tg://user?id=" + strconv.Itoa(ent.User.Id) + ")" + post
 	case "text_link":
-		return prevText + "[" + cntnt + "](" + ent.Url + ")"
+		return prevText + pre + "[" + cleanCntnt + "](" + ent.Url + ")" + post
 	default:
 		return prevText + cntnt
 	}

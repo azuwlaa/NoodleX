@@ -4,12 +4,10 @@ import (
 	"encoding/json"
 	"net/url"
 	"strconv"
-
-	"github.com/pkg/errors"
 )
 
 type sendableGame struct {
-	bot                 Bot `json:"-"`
+	bot                 Bot
 	ChatId              int
 	GameShortName       string
 	DisableNotification bool
@@ -26,19 +24,16 @@ func (g *sendableGame) Send() (*Message, error) {
 	v.Add("chat_id", strconv.Itoa(g.ChatId))
 	v.Add("game_short_name", g.GameShortName)
 
-	r, err := Get(g.bot, "sendGame", v)
+	r, err := g.bot.Get("sendGame", v)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to execute sendGame request")
-	}
-	if !r.Ok {
-		return nil, errors.Wrapf(err, "invalid sendGame request")
+		return nil, err
 	}
 
-	return g.bot.ParseMessage(r.Result)
+	return g.bot.ParseMessage(r)
 }
 
 type sendableSetGameScore struct {
-	bot                Bot `json:"-"`
+	bot                Bot
 	UserId             int
 	Score              int
 	Force              bool
@@ -66,20 +61,16 @@ func (sgs *sendableSetGameScore) Send() (bool, error) {
 	v.Add("message_id", strconv.Itoa(sgs.MessageId))
 	v.Add("inline_message_id", sgs.InlineMessageId)
 
-	r, err := Get(sgs.bot, "setGameScore", v)
+	r, err := sgs.bot.Get("setGameScore", v)
 	if err != nil {
-		return false, errors.Wrapf(err, "unable to execute setGameScore request")
+		return false, err
 	}
-	if !r.Ok {
-		return false, errors.Wrapf(err, "invalid setGameScore request")
-	}
-
 	var bb bool
-	return bb, json.Unmarshal(r.Result, &bb)
+	return bb, json.Unmarshal(r, &bb)
 }
 
 type sendableGetGameHighScores struct {
-	bot             Bot `json:"-"`
+	bot             Bot
 	UserId          int
 	ChatId          int
 	MessageId       int
@@ -101,14 +92,10 @@ func (gghs *sendableGetGameHighScores) Send() ([]GameHighScore, error) {
 	v.Add("message_id", strconv.Itoa(gghs.MessageId))
 	v.Add("inline_message_id", gghs.InlineMessageId)
 
-	r, err := Get(gghs.bot, "getGameHighScores", v)
+	r, err := gghs.bot.Get("getGameHighScores", v)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to execute getGameHighScores request")
+		return nil, err
 	}
-	if !r.Ok {
-		return nil, errors.Wrapf(err, "invalid getGameHighScores request")
-	}
-
 	var ghs []GameHighScore
-	return ghs, json.Unmarshal(r.Result, &ghs)
+	return ghs, json.Unmarshal(r, &ghs)
 }

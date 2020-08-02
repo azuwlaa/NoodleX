@@ -9,11 +9,11 @@ import (
 )
 
 type InlineQuery struct {
-	Id       string   `json:"id"`
-	From     User     `json:"from"`
-	Location Location `json:"location"`
-	Query    string   `json:"query"`
-	Offset   string   `json:"offset"`
+	Id       string    `json:"id"`
+	From     *User     `json:"from"`
+	Location *Location `json:"location"`
+	Query    string    `json:"query"`
+	Offset   string    `json:"offset"`
 }
 
 type InlineQueryResult struct{}
@@ -316,7 +316,7 @@ type ChosenInlineResult struct {
 }
 
 type sendableAnswerInlineQuery struct {
-	bot               Bot `json:"-"`
+	bot               Bot
 	InlineQueryId     string
 	Results           []InlineQueryResult
 	CacheTime         int
@@ -344,16 +344,13 @@ func (aiq sendableAnswerInlineQuery) Send() (bool, error) {
 	v.Add("switch_pm_text", aiq.SwitchPmText)
 	v.Add("switch_pm_parameter", aiq.SwitchPmParameter)
 
-	r, err := Get(aiq.bot, "answerInlineQuery", v)
+	r, err := aiq.bot.Get("answerInlineQuery", v)
 	if err != nil {
-		return false, errors.Wrapf(err, "unable to execute answerInlineQuery request")
-	}
-	if !r.Ok {
-		return false, errors.Wrapf(err, "invalid answerInlineQuery request")
+		return false, err
 	}
 
 	var bb bool
-	return bb, json.Unmarshal(r.Result, &bb)
+	return bb, json.Unmarshal(r, &bb)
 }
 
 func (b Bot) AnswerInlineQuery(inlineQueryId string, results []InlineQueryResult) (bool, error) {
