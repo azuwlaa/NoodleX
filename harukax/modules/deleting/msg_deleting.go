@@ -17,9 +17,12 @@
 package deleting
 
 import (
+	"fmt"
 	"log"
+	"strconv"
 	"time"
 
+	"github.com/HarukaNetwork/HarukaX/harukax"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/chat_status"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/error_handling"
 	"github.com/PaulSonOfLars/gotgbot"
@@ -27,7 +30,7 @@ import (
 	"github.com/PaulSonOfLars/gotgbot/handlers"
 )
 
-func purge(bot ext.Bot, u *gotgbot.Update) error {
+func purge(bot ext.Bot, u *gotgbot.Update, args []string) error {
 	msg := u.EffectiveMessage
 	user := u.EffectiveUser
 	chat := u.EffectiveChat
@@ -44,6 +47,17 @@ func purge(bot ext.Bot, u *gotgbot.Update) error {
 		if chat_status.CanDelete(chat, bot.Id) {
 			msgId := msg.ReplyToMessage.MessageId
 			deleteTo := msg.MessageId - 1
+
+			if args != nil && len(args) > 0 {
+				if _, err := strconv.Atoi(args[0]); err == nil {
+					convInt, _ := strconv.Atoi(args[0])
+					newDel := msgId + (convInt - 1)
+					if newDel < deleteTo {
+						deleteTo = newDel
+					}
+				}
+			}
+
 			for mId := deleteTo; mId > msgId-1; mId-- {
 				_, err := bot.DeleteMessage(chat.Id, mId)
 				if err != nil {
@@ -66,7 +80,7 @@ func purge(bot ext.Bot, u *gotgbot.Update) error {
 					error_handling.HandleErr(err)
 				}
 			}
-			delMsg, err := bot.SendMessage(chat.Id, "Purge complete.")
+			delMsg, err := bot.SendMessage(chat.Id, fmt.Sprintf("Purged %v messages.", strconv.Itoa((deleteTo-msgId)+1)))
 			error_handling.HandleErr(err)
 			time.Sleep(2 * time.Second)
 			_, err = bot.DeleteMessage(chat.Id, delMsg.MessageId)
@@ -108,6 +122,6 @@ func delMessage(bot ext.Bot, u *gotgbot.Update) error {
 
 func LoadDelete(u *gotgbot.Updater) {
 	defer log.Println("Loading module message_deleting")
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("purge", []rune{'/', '!'}, purge))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("del", []rune{'/', '!'}, delMessage))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("purge", []rune{'/', '!', '?'}, purge))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("del", harukax.BotConfig.Prefix, delMessage))
 }
