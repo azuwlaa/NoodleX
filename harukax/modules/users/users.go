@@ -36,11 +36,17 @@ func logUsers(_ ext.Bot, u *gotgbot.Update) error {
 		strconv.Itoa(chat.Id),
 		chat.Title)
 
+	sql.UpdateChatMember(msg.From.Id,
+		strconv.Itoa(chat.Id))
+
 	if msg.ReplyToMessage != nil {
 		sql.UpdateUser(msg.From.Id,
 			msg.From.Username,
 			strconv.Itoa(chat.Id),
 			chat.Title)
+
+		sql.UpdateChatMember(msg.From.Id,
+			strconv.Itoa(chat.Id))
 	}
 
 	if msg.ForwardFrom != nil {
