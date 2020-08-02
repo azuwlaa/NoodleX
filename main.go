@@ -18,9 +18,14 @@ package main
 
 import (
 	"log"
+	"os"
 	"strconv"
 
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/rules"
+	"github.com/HarukaNetwork/HarukaX/harukax/modules/stickers"
+	"github.com/HarukaNetwork/HarukaX/harukax/modules/ud"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/HarukaNetwork/HarukaX/harukax"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/admin"
@@ -44,8 +49,14 @@ import (
 )
 
 func main() {
+	cfg := zap.NewProductionEncoderConfig()
+	cfg.EncodeLevel = zapcore.CapitalLevelEncoder
+	cfg.EncodeTime = zapcore.RFC3339TimeEncoder
+
+	logger := zap.New(zapcore.NewCore(zapcore.NewConsoleEncoder(cfg), os.Stdout, zap.InfoLevel))
+	defer logger.Sync() // flushes buffer, if any
 	// Create updater instance
-	u, err := gotgbot.NewUpdater(harukax.BotConfig.ApiKey)
+	u, err := gotgbot.NewUpdater(logger, harukax.BotConfig.ApiKey)
 	error_handling.FatalError(err)
 
 	// Add start handler
@@ -72,6 +83,8 @@ func main() {
 	help.LoadHelp(u)
 	welcome.LoadWelcome(u)
 	rules.LoadRules(u)
+	ud.LoadUd(u)
+	stickers.LoadStickers(u)
 
 	if harukax.BotConfig.DropUpdate == "True" {
 		log.Println("[Info][Core] Using Clean Long Polling")
@@ -106,6 +119,6 @@ func start(_ ext.Bot, u *gotgbot.Update, args []string) error {
 	}
 
 	_, err := msg.ReplyTextf("Hi there! I'm a telegram group management bot, written in Go." +
-		"\nFor any questions or bug reports, you can head over to @gobotsupport.")
+		"\nFor any questions or bug reports, you can head over to @NatalieSupport.")
 	return err
 }

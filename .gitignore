@@ -76,3 +76,4 @@ fabric.properties
 # Cross platform binaries
 build
 
+.vscode/settings.json
