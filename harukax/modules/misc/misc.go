@@ -22,6 +22,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"strings"
@@ -38,6 +39,67 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/tcnksm/go-httpstat"
 )
+
+var runStrings = [59]string{"Where do you think you're going?",
+	"Huh? what? did they get away?",
+	"ZZzzZZzz... Huh? what? oh, just them again, nevermind.",
+	"Get back here!",
+	"Not so fast...",
+	"Look out for the wall!",
+	"Don't leave me alone with them!!",
+	"You run, you die.",
+	"Energy drinks makes you run faster!",
+	"Stop walking and start to run",
+	"Jokes on you, I'm everywhere",
+	"You're gonna regret that...",
+	"You could also try /kickme, I hear that's fun.",
+	"Go bother someone else, no-one here cares.",
+	"You can run, but you can't hide.",
+	"Is that all you've got?",
+	"I'm behind you...",
+	"You've got company!",
+	"We can do this the easy way, or the hard way.",
+	"You just don't get it, do you?",
+	"Yeah, you better run!",
+	"Please, remind me how much I care?",
+	"I'd run faster if I were you.",
+	"That's definitely the droid we're looking for.",
+	"May the odds be ever in your favour.",
+	"Famous last words.",
+	"If you disappear, don't call for help...",
+	"Run for your life!",
+	"And they disappeared forever, never to be seen again.",
+	"\"Oh, look at me! I'm so cool, I can run from a bot!\" - this person",
+	"Yeah yeah, just tap /kickme already.",
+	"Here, take this ring and head to Mordor while you're at it.",
+	"Legend has it, they're still running...",
+	"Unlike Harry Potter, your parents can't protect you from me.",
+	"Fear leads to anger. Anger leads to hate. Hate leads to suffering. If you keep running in fear, you might " +
+		"be the next Vader.",
+	"Multiple calculations later, I have decided my interest in your shenanigans is exactly 0.",
+	"Legend has it, they're still running.",
+	"Keep it up, not sure we want you here anyway.",
+	"You're a wiza- Oh. Wait. You're not Harry, keep moving.",
+	"NO RUNNING IN THE HALLWAYS!",
+	"Hasta la vista, baby.",
+	"Run carelessly you might get tripped.",
+	"You have done a wonderful job, Keep it up...",
+	"I see an evil spirits here, Let's expel them!\n\n" +
+		"Exorcizamus te, omnis immunde spiritus, omni satanica potestas, omnis incursio infernalis adversarii," +
+		" omnis legio, omnis congregatio et secta diabolica, in nomini et virtute Domini nostri Jesu Christi, eradicare " +
+		"et effugare a Dei Ecclesia, ab animabus ad imaginem Dei conditis ac pretioso divini Agni sanguini redemptis.",
+	"Who let the dogs out?",
+	"It's funny, because no one cares.",
+	"That's cool, just hit on seppuku /banme already.",
+	"Ah, what a waste. I liked that one.",
+	"Frankly, my dear, I don't give a damn.",
+	"My flowers brings all the girls to yard... So run faster!",
+	"You can't HANDLE the truth!",
+	"A long time ago, in a galaxy far far away... Someone would've cared about that. Not anymore though.",
+	"Hey, look at them! They're running from the inevitable banhammer... Cute.",
+	"Han shot first. So will I.",
+	"What are you running after, a white rabbit?",
+	"As The Doctor would say... RUN!"}
 
 func getId(bot ext.Bot, u *gotgbot.Update, args []string) error {
 	userId := extraction.ExtractUser(u.EffectiveMessage, args)
@@ -94,7 +156,7 @@ func info(bot ext.Bot, u *gotgbot.Update, args []string) error {
 		return nil
 	}
 
-	text := fmt.Sprintf("<b>User info</b>"+
+	text := fmt.Sprintf("<b>User info:</b>"+
 		"\nID: <code>%v</code>"+
 		"\nFirst Name: %v", userId, html.EscapeString(user.FirstName))
 
@@ -106,7 +168,7 @@ func info(bot ext.Bot, u *gotgbot.Update, args []string) error {
 		text += fmt.Sprintf("\nUsername: @%v", user.Username)
 	}
 
-	text += fmt.Sprintf("\nPermanent user link: %v", helpers.MentionHtml(user.Id, user.FirstName+user.LastName))
+	text += fmt.Sprintf("\nPermanent user link: %v", helpers.MentionHtml(user.Id, fmt.Sprintf("%v %v", user.FirstName, user.LastName)))
 
 	fed := sql.GetChatFed(strconv.Itoa(chat.Id))
 	if fed != nil {
@@ -129,6 +191,9 @@ func info(bot ext.Bot, u *gotgbot.Update, args []string) error {
 			}
 		}
 	}
+
+	text += fmt.Sprintf("\n\nI've seen them in <code>%v</code> chats in total.", sql.GetUserChats(userId))
+
 	_, err := u.EffectiveMessage.ReplyHTML(text)
 	return err
 }
@@ -157,9 +222,16 @@ func ping(_ ext.Bot, u *gotgbot.Update) error {
 	return err
 }
 
+func runs(bot ext.Bot, u *gotgbot.Update) error {
+	rand.Seed(time.Now().Unix())
+	u.EffectiveMessage.ReplyText(runStrings[rand.Intn(len(runStrings))])
+	return nil
+}
+
 func LoadMisc(u *gotgbot.Updater) {
 	defer log.Println("Loading module misc")
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("id", []rune{'/', '!'}, getId))
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("info", []rune{'/', '!'}, info))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("ping", []rune{'/', '!'}, ping))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("id", harukax.BotConfig.Prefix, getId))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("info", harukax.BotConfig.Prefix, info))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("ping", harukax.BotConfig.Prefix, ping))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("runs", harukax.BotConfig.Prefix, runs))
 }
