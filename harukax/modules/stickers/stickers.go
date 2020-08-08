@@ -47,22 +47,13 @@ func GetSticker(bot ext.Bot, u *gotgbot.Update) error {
 	if msg.ReplyToMessage != nil && msg.ReplyToMessage.Sticker != nil && msg.ReplyToMessage.Sticker.IsAnimated == false {
 		fileId := msg.ReplyToMessage.Sticker.FileId
 
-		file, err := bot.GetFile(fileId)
-		var inputFile ext.InputFile
-		if err != nil {
-			print("Cannot get the file!")
-			return err
+		inputFile, r, err := GetInputFile(bot, fileId, "sticker.png")
+		if r != nil {
+			defer r.Body.Close()
 		}
-
-		resp, err := http.Get(fmt.Sprintf("https://api.telegram.org/file/bot%v/%v", harukax.BotConfig.ApiKey, file.FilePath))
-
 		if err != nil {
 			return err
 		}
-
-		defer resp.Body.Close()
-
-		inputFile = bot.NewFileReader("sticker.png", io.Reader(resp.Body))
 
 		newDoc := bot.NewSendableDocument(chat.Id, "Sticker file")
 		newDoc.Document = inputFile
@@ -70,22 +61,13 @@ func GetSticker(bot ext.Bot, u *gotgbot.Update) error {
 	} else if msg.ReplyToMessage != nil && msg.ReplyToMessage.Sticker != nil && msg.ReplyToMessage.Sticker.IsAnimated == true {
 		fileId := msg.ReplyToMessage.Sticker.FileId
 
-		file, err := bot.GetFile(fileId)
-		var inputFile ext.InputFile
-		if err != nil {
-			print("Cannot get the file!")
-			return err
+		inputFile, r, err := GetInputFile(bot, fileId, "sticker.rename")
+		if r != nil {
+			defer r.Body.Close()
 		}
-
-		resp, err := http.Get(fmt.Sprintf("https://api.telegram.org/file/bot%v/%v", harukax.BotConfig.ApiKey, file.FilePath))
-
 		if err != nil {
 			return err
 		}
-
-		defer resp.Body.Close()
-
-		inputFile = bot.NewFileReader("sticker.rename", io.Reader(resp.Body))
 
 		newDoc := bot.NewSendableDocument(chat.Id, "Go to @Stickers bot and rename this file to .tgs then use "+
 			"/newanimated or /addsticker and send this file")
@@ -161,27 +143,24 @@ func KangSticker(bot ext.Bot, u *gotgbot.Update) error {
 			stickerEmoji = "🛡"
 		}
 
-		file, err := bot.GetFile(fileId)
-		var inputFile ext.InputFile
-		if err != nil {
-			print("Cannot get the file!")
-			return err
-		}
-
-		resp, err := http.Get(fmt.Sprintf("https://api.telegram.org/file/bot%v/%v", harukax.BotConfig.ApiKey, file.FilePath))
-
-		if err != nil {
-			return err
-		}
-
-		defer resp.Body.Close()
-
 		if msg.ReplyToMessage.Sticker.IsAnimated == true {
-			inputFile = bot.NewFileReader("sticker.tgs", io.Reader(resp.Body))
+			inputFile, r, err := GetInputFile(bot, fileId, "sticker.tgs")
+			if r != nil {
+				defer r.Body.Close()
+			}
+			if err != nil {
+				return err
+			}
 			success, err = bot.AddTgsStickerToSet(user.Id, packname, inputFile, stickerEmoji)
 			animTitle = "%v's animated pack %v"
 		} else {
-			inputFile = bot.NewFileReader("sticker.png", io.Reader(resp.Body))
+			inputFile, r, err := GetInputFile(bot, fileId, "sticker.png")
+			if r != nil {
+				defer r.Body.Close()
+			}
+			if err != nil {
+				return err
+			}
 			success, err = bot.AddPngStickerToSet(user.Id, packname, inputFile, stickerEmoji)
 		}
 
@@ -210,32 +189,27 @@ func MakeInternal(msg *ext.Message, user *ext.User, fileId string, emoji string,
 		extra_version = " " + strconv.Itoa(packnum)
 	}
 
-	file, err := bot.GetFile(fileId)
-	var inputFile ext.InputFile
-	if err != nil {
-		print("Cannot get the file!")
-		return err
-	}
-
-	resp, err := http.Get(fmt.Sprintf("https://api.telegram.org/file/bot%v/%v", harukax.BotConfig.ApiKey, file.FilePath))
-
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	inputFile = bot.NewFileReader("sticker.png", io.Reader(resp.Body))
-
 	if animTitle != "nil" {
 		title = animTitle
 	}
 	newStick := bot.NewSendableCreateNewStickerSet(user.Id, packname, fmt.Sprintf(title, name, extra_version), emoji)
 	if animTitle != "nil" {
-		inputFile = bot.NewFileReader("sticker.tgs", io.Reader(resp.Body))
+		inputFile, r, err := GetInputFile(bot, fileId, "sticker.tgs")
+		if r != nil {
+			defer r.Body.Close()
+		}
+		if err != nil {
+			return err
+		}
 		newStick.TgsSticker = &inputFile
 	} else {
-		inputFile = bot.NewFileReader("sticker.png", io.Reader(resp.Body))
+		inputFile, r, err := GetInputFile(bot, fileId, "sticker.png")
+		if r != nil {
+			defer r.Body.Close()
+		}
+		if err != nil {
+			return err
+		}
 		newStick.PngSticker = &inputFile
 	}
 
@@ -251,6 +225,25 @@ func MakeInternal(msg *ext.Message, user *ext.User, fileId string, emoji string,
 	}
 
 	return nil
+}
+
+func GetInputFile(bot ext.Bot, fileId string, fileName string) (ext.InputFile, *http.Response, error) {
+	file, err := bot.GetFile(fileId)
+	var inputFile ext.InputFile
+	var r *http.Response
+	if err != nil {
+		print("Cannot get the file!")
+		return inputFile, r, err
+	}
+
+	resp, err := http.Get(fmt.Sprintf("https://api.telegram.org/file/bot%v/%v", harukax.BotConfig.ApiKey, file.FilePath))
+
+	if err != nil {
+		return inputFile, r, err
+	}
+
+	inputFile = bot.NewFileReader(fileName, io.Reader(resp.Body))
+	return inputFile, resp, nil
 }
 
 func LoadStickers(u *gotgbot.Updater) {
