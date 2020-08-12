@@ -30,7 +30,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func StickerId(_ ext.Bot, u *gotgbot.Update) error {
+func stickerId(_ ext.Bot, u *gotgbot.Update) error {
 	msg := u.EffectiveMessage
 	if msg.ReplyToMessage != nil && msg.ReplyToMessage.Sticker != nil {
 		msg.ReplyHTMLf("Sticker  ID:\n<code>%v</code>", msg.ReplyToMessage.Sticker.FileId)
@@ -40,14 +40,14 @@ func StickerId(_ ext.Bot, u *gotgbot.Update) error {
 	return nil
 }
 
-func GetSticker(bot ext.Bot, u *gotgbot.Update) error {
+func getSticker(bot ext.Bot, u *gotgbot.Update) error {
 	msg := u.EffectiveMessage
 	chat := u.EffectiveChat
 
 	if msg.ReplyToMessage != nil && msg.ReplyToMessage.Sticker != nil && msg.ReplyToMessage.Sticker.IsAnimated == false {
 		fileId := msg.ReplyToMessage.Sticker.FileId
 
-		inputFile, r, err := GetInputFile(bot, fileId, "sticker.png")
+		inputFile, r, err := getInputFile(bot, fileId, "sticker.png")
 		if r != nil {
 			defer r.Body.Close()
 		}
@@ -55,13 +55,13 @@ func GetSticker(bot ext.Bot, u *gotgbot.Update) error {
 			return err
 		}
 
-		newDoc := bot.NewSendableDocument(chat.Id, "Sticker file")
+		newDoc := bot.NewSendableDocument(chat.Id, "Sticker")
 		newDoc.Document = inputFile
 		newDoc.Send()
 	} else if msg.ReplyToMessage != nil && msg.ReplyToMessage.Sticker != nil && msg.ReplyToMessage.Sticker.IsAnimated == true {
 		fileId := msg.ReplyToMessage.Sticker.FileId
 
-		inputFile, r, err := GetInputFile(bot, fileId, "sticker.rename")
+		inputFile, r, err := getInputFile(bot, fileId, "sticker.rename")
 		if r != nil {
 			defer r.Body.Close()
 		}
@@ -79,7 +79,7 @@ func GetSticker(bot ext.Bot, u *gotgbot.Update) error {
 	return nil
 }
 
-func KangSticker(bot ext.Bot, u *gotgbot.Update) error {
+func kangSticker(bot ext.Bot, u *gotgbot.Update) error {
 	msg := u.EffectiveMessage
 	user := u.EffectiveUser
 	packnum := 0
@@ -144,7 +144,7 @@ func KangSticker(bot ext.Bot, u *gotgbot.Update) error {
 		}
 
 		if msg.ReplyToMessage.Sticker.IsAnimated == true {
-			inputFile, r, err := GetInputFile(bot, fileId, "sticker.tgs")
+			inputFile, r, err := getInputFile(bot, fileId, "sticker.tgs")
 			if r != nil {
 				defer r.Body.Close()
 			}
@@ -154,7 +154,7 @@ func KangSticker(bot ext.Bot, u *gotgbot.Update) error {
 			success, err = bot.AddTgsStickerToSet(user.Id, packname, inputFile, stickerEmoji)
 			animTitle = "%v's animated pack %v"
 		} else {
-			inputFile, r, err := GetInputFile(bot, fileId, "sticker.png")
+			inputFile, r, err := getInputFile(bot, fileId, "sticker.png")
 			if r != nil {
 				defer r.Body.Close()
 			}
@@ -165,7 +165,7 @@ func KangSticker(bot ext.Bot, u *gotgbot.Update) error {
 		}
 
 		if err != nil {
-			err := MakeInternal(msg, user, fileId, stickerEmoji, bot, packname, packnum, animTitle)
+			err := makeInternal(msg, user, fileId, stickerEmoji, bot, packname, packnum, animTitle)
 			if err != nil {
 				msg.ReplyText("Something went wrong with kanging.")
 				return err
@@ -181,7 +181,7 @@ func KangSticker(bot ext.Bot, u *gotgbot.Update) error {
 	return nil
 }
 
-func MakeInternal(msg *ext.Message, user *ext.User, fileId string, emoji string, bot ext.Bot, packname string, packnum int, animTitle string) error {
+func makeInternal(msg *ext.Message, user *ext.User, fileId string, emoji string, bot ext.Bot, packname string, packnum int, animTitle string) error {
 	name := user.FirstName
 	extra_version := ""
 	title := "%v's pack %v"
@@ -194,7 +194,7 @@ func MakeInternal(msg *ext.Message, user *ext.User, fileId string, emoji string,
 	}
 	newStick := bot.NewSendableCreateNewStickerSet(user.Id, packname, fmt.Sprintf(title, name, extra_version), emoji)
 	if animTitle != "nil" {
-		inputFile, r, err := GetInputFile(bot, fileId, "sticker.tgs")
+		inputFile, r, err := getInputFile(bot, fileId, "sticker.tgs")
 		if r != nil {
 			defer r.Body.Close()
 		}
@@ -203,7 +203,7 @@ func MakeInternal(msg *ext.Message, user *ext.User, fileId string, emoji string,
 		}
 		newStick.TgsSticker = &inputFile
 	} else {
-		inputFile, r, err := GetInputFile(bot, fileId, "sticker.png")
+		inputFile, r, err := getInputFile(bot, fileId, "sticker.png")
 		if r != nil {
 			defer r.Body.Close()
 		}
@@ -227,7 +227,7 @@ func MakeInternal(msg *ext.Message, user *ext.User, fileId string, emoji string,
 	return nil
 }
 
-func GetInputFile(bot ext.Bot, fileId string, fileName string) (ext.InputFile, *http.Response, error) {
+func getInputFile(bot ext.Bot, fileId string, fileName string) (ext.InputFile, *http.Response, error) {
 	file, err := bot.GetFile(fileId)
 	var inputFile ext.InputFile
 	var r *http.Response
@@ -248,7 +248,7 @@ func GetInputFile(bot ext.Bot, fileId string, fileName string) (ext.InputFile, *
 
 func LoadStickers(u *gotgbot.Updater) {
 	defer log.Println("Loading module stickers")
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("stickerid", harukax.BotConfig.Prefix, StickerId))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("getsticker", harukax.BotConfig.Prefix, GetSticker))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("kang", harukax.BotConfig.Prefix, KangSticker))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("stickerid", harukax.BotConfig.Prefix, stickerId))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("getsticker", harukax.BotConfig.Prefix, getSticker))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("kang", harukax.BotConfig.Prefix, kangSticker))
 }
