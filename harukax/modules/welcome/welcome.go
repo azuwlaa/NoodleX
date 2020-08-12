@@ -40,7 +40,7 @@ var EnumFuncMap = map[int]func(ext.Bot, int, string) (*ext.Message, error){
 	sql.BUTTON_TEXT: ext.Bot.SendMessage,
 }
 
-var EnumFuncMap1 = map[int]func(ext.Bot, int, ext.InputFile) (*ext.Message, error){
+var AltEnumFuncMap = map[int]func(ext.Bot, int, ext.InputFile) (*ext.Message, error){
 	sql.STICKER:  ext.Bot.SendSticker,
 	sql.DOCUMENT: ext.Bot.SendDocument,
 	sql.PHOTO:    ext.Bot.SendPhoto,
@@ -80,9 +80,33 @@ func newMember(bot ext.Bot, u *gotgbot.Update) error {
 			}
 
 			if welcPrefs.WelcomeType != sql.TEXT && welcPrefs.WelcomeType != sql.BUTTON_TEXT {
-				_, err := EnumFuncMap[welcPrefs.WelcomeType](bot, chat.Id, welcPrefs.CustomWelcome)
-				if err != nil {
-					return err
+				if welcPrefs.WelcomeType > 1 {
+					if welcPrefs.WelcomeType == 4 {
+						newPhoto := bot.NewSendablePhoto(chat.Id, welcPrefs.CustomWelcome)
+						newPhoto.Photo = bot.NewFileId(welcPrefs.Content)
+						_, err := newPhoto.Send()
+						if err != nil {
+							return nil
+						}
+					} else if welcPrefs.WelcomeType == 7 {
+						newVideo := bot.NewSendableVideo(chat.Id, welcPrefs.CustomWelcome)
+						newVideo.Video = bot.NewFileId(welcPrefs.Content)
+						_, err := newVideo.Send()
+						if err != nil {
+							return nil
+						}
+					} else {
+						inputFile := bot.NewFileId(welcPrefs.CustomWelcome)
+						_, err := AltEnumFuncMap[welcPrefs.WelcomeType](bot, chat.Id, inputFile)
+						if err != nil {
+							return err
+						}
+					}
+				} else {
+					_, err := EnumFuncMap[welcPrefs.WelcomeType](bot, chat.Id, welcPrefs.CustomWelcome)
+					if err != nil {
+						return err
+					}
 				}
 			}
 			firstName = mem.FirstName

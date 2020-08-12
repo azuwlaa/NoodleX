@@ -128,8 +128,10 @@ func setWelcome(_ ext.Bot, u *gotgbot.Update) error {
 		}
 	}
 
-	if text != "" {
+	if text != "" && content == "" {
 		go sql.SetCustomWelcome(strconv.Itoa(chat.Id), text, btns, dataType)
+	} else if text != "" && content != "" {
+		go sql.SetCustomWelcomeContent(strconv.Itoa(chat.Id), text, btns, dataType, content)
 	} else {
 		go sql.SetCustomWelcome(strconv.Itoa(chat.Id), content, btns, dataType)
 	}

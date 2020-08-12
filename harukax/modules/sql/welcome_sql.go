@@ -17,6 +17,7 @@
 package sql
 
 const DefaultWelcome = "Hey {first}, how are you?"
+const DefaultContent = ""
 
 type Welcome struct {
 	ChatId        string `gorm:"primary_key"`
@@ -27,6 +28,7 @@ type Welcome struct {
 	CleanWelcome  int  `gorm:"default:0"`
 	WelcomeType   int  `gorm:"default:0"`
 	MuteTime      int  `gorm:"default:0"`
+	Content       string
 }
 
 type WelcomeButton struct {
@@ -57,6 +59,7 @@ func GetWelcomePrefs(chatID string) *Welcome {
 			CustomWelcome: DefaultWelcome,
 			WelcomeType:   TEXT,
 			MuteTime:      0,
+			Content:       DefaultContent,
 		}
 	}
 	return welc
@@ -134,6 +137,31 @@ func SetCustomWelcome(chatID string, welcome string, buttons []WelcomeButton, we
 	tx.FirstOrCreate(w)
 	w.CustomWelcome = welcome
 	w.WelcomeType = welcType
+	tx.Save(w)
+	tx.Commit()
+}
+
+func SetCustomWelcomeContent(chatID string, welcome string, buttons []WelcomeButton, welcType int, content string) {
+	w := &Welcome{ChatId: chatID}
+	if buttons == nil {
+		buttons = make([]WelcomeButton, 0)
+	}
+
+	tx := SESSION.Begin()
+	prevButtons := make([]WelcomeButton, 0)
+	tx.Where(&WelcomeButton{ChatId: chatID}).Find(&prevButtons)
+	for _, btn := range prevButtons {
+		tx.Delete(&btn)
+	}
+
+	for _, btn := range buttons {
+		tx.Save(&btn)
+	}
+
+	tx.FirstOrCreate(w)
+	w.CustomWelcome = welcome
+	w.WelcomeType = welcType
+	w.Content = content
 	tx.Save(w)
 	tx.Commit()
 }
