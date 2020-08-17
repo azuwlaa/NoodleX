@@ -84,6 +84,11 @@ func kangSticker(bot ext.Bot, u *gotgbot.Update) error {
 	user := u.EffectiveUser
 	packnum := 0
 	packname := fmt.Sprintf("a%v_by_%v", strconv.Itoa(user.Id), bot.UserName)
+	if msg.ReplyToMessage == nil {
+		msg.ReplyText("What are you trying to kang?")
+		var err error
+		return err
+	}
 	if msg.ReplyToMessage.Sticker == nil {
 		msg.ReplyText("Can't kang that mate.")
 		var err error
