@@ -58,9 +58,8 @@ func init() {
 	var redis_address bool
 	var drop_update bool
 	var debug_mode bool
-
-	var prefixTemp []string
-	var runeTemp []rune
+	var cust_prefix bool
+	var prefixTemp string
 
 	returnConfig.BotName, bot_name = os.LookupEnv("BOT_NAME")
 
@@ -83,12 +82,9 @@ func init() {
 	returnConfig.DebugMode, debug_mode = os.LookupEnv("DEBUG")
 
 	returnConfig.DropUpdate, drop_update = os.LookupEnv("DROP_UPDATES")
-	prefixTemp = strings.Split(os.Getenv("PREFIX"), " ")
 
-	for _, pref := range prefixTemp {
-		runeTemp = append(runeTemp, []rune(pref)...)
-	}
-	returnConfig.Prefix = runeTemp
+	prefixTemp, cust_prefix = os.LookupEnv("PREFIX")
+	returnConfig.Prefix = []rune(prefixTemp)
 
 	// Check Part
 
@@ -126,9 +122,9 @@ func init() {
 		log.Println("[Info][Config] DEBUG is not defined, Selecting False")
 	}
 
-	if prefixTemp == nil || len(prefixTemp) < 1 {
+	if !cust_prefix {
 		returnConfig.Prefix = []rune{'/', '!'}
-		log.Println("[Info][Config] Prefix is not defined, Selecting /")
+		log.Println("[Info][Config] Prefix is not defined, Selecting '/' & '!'.")
 	}
 
 	BotConfig = returnConfig
