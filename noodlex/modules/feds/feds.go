@@ -1,19 +1,3 @@
-/*
- *    Copyright © 2020 Haruka Network Development
- *    This file is part of Haruka X.
- *
- *    Haruka X is free software: you can redistribute it and/or modify
- *    it under the terms of the Raphielscape Public License as published by
- *    the Devscapes Open Source Holding GmbH., version 1.d
- *
- *    Haruka X is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    Devscapes Raphielscape Public License for more details.
- *
- *    You should have received a copy of the Devscapes Raphielscape Public License
- */
-
 package feds
 
 import (
@@ -228,7 +212,7 @@ func fedCheckBan(bot ext.Bot, u *gotgbot.Update) error {
 }
 
 func LoadFeds(u *gotgbot.Updater) {
-	defer log.Println("Loading module feds")
+	defer log.Println("Loaded module: feds")
 	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("newfed", noodlex.BotConfig.Prefix, newFed))
 	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("delfed", noodlex.BotConfig.Prefix, delFed))
 	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("chatfed", noodlex.BotConfig.Prefix, chatFed))

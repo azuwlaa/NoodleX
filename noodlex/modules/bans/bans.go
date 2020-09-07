@@ -1,22 +1,8 @@
-/*
- *    Copyright © 2020 Haruka Network Development
- *    This file is part of Haruka X.
- *
- *    Haruka X is free software: you can redistribute it and/or modify
- *    it under the terms of the Raphielscape Public License as published by
- *    the Devscapes Open Source Holding GmbH., version 1.d
- *
- *    Haruka X is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    Devscapes Raphielscape Public License for more details.
- *
- *    You should have received a copy of the Devscapes Raphielscape Public License
- */
-
 package bans
 
 import (
+	"fmt"
+	"html"
 	"log"
 	"strings"
 
@@ -24,6 +10,7 @@ import (
 	"github.com/NoodleSoup/NoodleX/noodlex/modules/utils/chat_status"
 	"github.com/NoodleSoup/NoodleX/noodlex/modules/utils/error_handling"
 	"github.com/NoodleSoup/NoodleX/noodlex/modules/utils/extraction"
+	"github.com/NoodleSoup/NoodleX/noodlex/modules/utils/helpers"
 	"github.com/NoodleSoup/NoodleX/noodlex/modules/utils/string_handling"
 	"github.com/PaulSonOfLars/gotgbot"
 	"github.com/PaulSonOfLars/gotgbot/ext"
@@ -48,16 +35,16 @@ func ban(bot ext.Bot, u *gotgbot.Update, args []string) error {
 		return gotgbot.EndGroups{}
 	}
 
-	userId, _ := extraction.ExtractUserAndText(message, args)
-	if userId == 0 {
-		_, err := message.ReplyText("Try targeting a user next time bud.")
+	userID, reason := extraction.ExtractUserAndText(message, args)
+	if userID == 0 {
+		_, err := message.ReplyText("You don't seem to be referring to a user.")
 		return err
 	}
 
-	member, err := chat.GetMember(userId)
+	member, err := chat.GetMember(userID)
 	if err != nil {
 		if err.Error() == "User not found" {
-			_, err = message.ReplyText("This user is ded mate.")
+			_, err = message.ReplyText("I can't seem to find this user.")
 		}
 		return err
 	}
@@ -68,22 +55,31 @@ func ban(bot ext.Bot, u *gotgbot.Update, args []string) error {
 		return err
 	}
 
-	if chat_status.IsUserBanProtected(chat, userId, member) {
-		_, err := message.ReplyText("One day I'll find out how to work around the bot API. Today is not that day.")
+	if chat_status.IsUserBanProtected(chat, userID, member) {
+		_, err := message.ReplyText("Why would I ban an admin? That sounds like a pretty dumb idea.")
 		return err
 	}
 
-	if userId == bot.Id {
-		_, err := message.ReplyText("Nani kore?")
+	if userID == bot.Id {
+		_, err := message.ReplyText("I'm not gonna BAN myself, are you crazy?")
 		return err
 	}
 
-	_, err = chat.KickMember(userId)
+	_, err = chat.KickMember(userID)
 	if err != nil {
 		return err
 	}
 
-	_, err = message.ReplyText("User has been shoo shoo!")
+	bannedUser, _ := bot.GetChat(userID)
+
+	text := fmt.Sprintf("%v has been banned!", helpers.MentionHtml(userID, fmt.Sprintf("%v", bannedUser.FirstName)))
+	text += fmt.Sprintf("\n<b>ID:</b> <code>%v</code>", userID)
+
+	if reason != "" {
+		text += fmt.Sprintf("\n<b>Reason:</b> %v", html.EscapeString(reason))
+	}
+
+	_, err = message.ReplyHTML(text)
 	return err
 }
 
@@ -105,16 +101,16 @@ func tempBan(bot ext.Bot, u *gotgbot.Update, args []string) error {
 		return gotgbot.EndGroups{}
 	}
 
-	userId, reason := extraction.ExtractUserAndText(message, args)
-	if userId == 0 {
-		_, err := message.ReplyText("Try targeting a user next time bud.")
+	userID, reason := extraction.ExtractUserAndText(message, args)
+	if userID == 0 {
+		_, err := message.ReplyText("You don't seem to be referring to a user.")
 		return err
 	}
 
-	member, err := chat.GetMember(userId)
+	member, err := chat.GetMember(userID)
 	if err != nil {
 		if err.Error() == "User not found" {
-			_, err = message.ReplyText("This user is ded mate.")
+			_, err = message.ReplyText("I can't seem to find this user.")
 		}
 		return err
 	}
@@ -125,18 +121,18 @@ func tempBan(bot ext.Bot, u *gotgbot.Update, args []string) error {
 		return err
 	}
 
-	if chat_status.IsUserBanProtected(chat, userId, member) {
-		_, err := message.ReplyText("One day I'll find out how to work around the bot API. Today is not that day.")
+	if chat_status.IsUserBanProtected(chat, userID, member) {
+		_, err := message.ReplyText("Why would I ban an admin? That sounds like a pretty dumb idea.")
 		return err
 	}
 
-	if userId == bot.Id {
-		_, err := message.ReplyText("Nani kore?")
+	if userID == bot.Id {
+		_, err := message.ReplyText("I'm not gonna BAN myself, are you crazy?")
 		return err
 	}
 
 	if reason == "" {
-		_, err := message.ReplyText("I don't know how long I'm supposed to ban them for 🤔.")
+		_, err := message.ReplyText("You haven't specified a time to ban this user for!")
 		return err
 	}
 
@@ -146,15 +142,22 @@ func tempBan(bot ext.Bot, u *gotgbot.Update, args []string) error {
 	if banTime == -1 {
 		return nil
 	}
-	newMsg := bot.NewSendableKickChatMember(chat.Id, userId)
+	newMsg := bot.NewSendableKickChatMember(chat.Id, userID)
 	string_handling.ExtractTime(message, timeVal)
 	newMsg.UntilDate = banTime
 	_, err = newMsg.Send()
 	if err != nil {
-		_, err := message.ReplyText("Press F, I can't seem to ban this user.")
+		_, err := message.ReplyText("Well damn, I can't ban that user.")
 		error_handling.HandleErr(err)
 	}
-	_, err = message.ReplyHTMLf("Banned for <b>%s</b>!", timeVal)
+
+	bannedUser, _ := bot.GetChat(userID)
+
+	text := fmt.Sprintf("%v has been temporarily banned for %s!",
+		helpers.MentionHtml(userID, fmt.Sprintf("%v", bannedUser.FirstName)), timeVal)
+	text += fmt.Sprintf("\n<b>ID:</b> <code>%v</code>", userID)
+
+	_, err = message.ReplyHTML(text)
 	return err
 }
 
@@ -176,16 +179,16 @@ func kick(bot ext.Bot, u *gotgbot.Update, args []string) error {
 		return gotgbot.EndGroups{}
 	}
 
-	userId, _ := extraction.ExtractUserAndText(message, args)
-	if userId == 0 {
-		_, err := message.ReplyText("Try targeting a user next time bud.")
+	userID, reason := extraction.ExtractUserAndText(message, args)
+	if userID == 0 {
+		_, err := message.ReplyText("You don't seem to be referring to a user.")
 		return err
 	}
 
-	var member, err = chat.GetMember(userId)
+	var member, err = chat.GetMember(userID)
 	if err != nil {
 		if err.Error() == "User not found" {
-			_, err = message.ReplyText("This user is ded mate.")
+			_, err = message.ReplyText("I can't seem to find this user.")
 		}
 		return err
 	}
@@ -196,22 +199,32 @@ func kick(bot ext.Bot, u *gotgbot.Update, args []string) error {
 		return err
 	}
 
-	if chat_status.IsUserBanProtected(chat, userId, member) {
+	if chat_status.IsUserBanProtected(chat, userID, member) {
 		_, err := message.ReplyText("One day I'll find out how to work around the bot API. Today is not that day.")
 		return err
 	}
 
-	if userId == bot.Id {
-		_, err := message.ReplyText("Nani kore?")
+	if userID == bot.Id {
+		_, err := message.ReplyText("Yeahhh I'm not gonna do that.")
 		return err
 	}
 
-	_, err = chat.UnbanMember(userId) // Apparently unban on current user = kick
+	_, err = chat.UnbanMember(userID) // Apparently unban on current user = kick
 	if err != nil {
 		_, err = message.ReplyText("Hec, I can't seem to kick this user.")
 		return err
 	}
-	_, err = message.ReplyText("Shoo shoo!")
+
+	kickedUser, _ := bot.GetChat(userID)
+
+	text := fmt.Sprintf("%v has been kicked!", helpers.MentionHtml(userID, fmt.Sprintf("%v", kickedUser.FirstName)))
+	text += fmt.Sprintf("\n<b>ID:</b> <code>%v</code>", userID)
+
+	if reason != "" {
+		text += fmt.Sprintf("\n<b>Reason:</b> %v", html.EscapeString(reason))
+	}
+
+	_, err = message.ReplyHTML(text)
 	return err
 }
 
@@ -231,16 +244,48 @@ func kickme(_ ext.Bot, u *gotgbot.Update) error {
 	}
 
 	if chat_status.IsUserAdmin(chat, user.Id) {
-		_, err := message.ReplyText("Admin sir pls ;_;")
+		_, err := message.ReplyText("Yeahhh I'm not gonna do that.")
 		error_handling.HandleErr(err)
 		return gotgbot.EndGroups{}
 	}
-	bb, _ := chat.UnbanMember(user.Id)
-	if bb {
-		_, err := message.ReplyText("Sure thing boss.")
+
+	Kickme, _ := chat.UnbanMember(user.Id) // kick the user
+	if Kickme {
+		_, err := message.ReplyText("Get out!")
 		return err
 	} else {
-		_, err := message.ReplyText("OwO I can't :/")
+		_, err := message.ReplyText("Huh? I can't :/")
+		return err
+	}
+}
+
+func banme(_ ext.Bot, u *gotgbot.Update) error {
+	chat := u.EffectiveChat
+	user := u.EffectiveUser
+	message := u.EffectiveMessage
+
+	// Permission checks
+	if u.EffectiveChat.Type == "private" {
+		_, err := u.EffectiveMessage.ReplyText("This command is meant to be used in a group!")
+		return err
+	}
+
+	if !chat_status.RequireBotAdmin(chat, message) {
+		return gotgbot.EndGroups{}
+	}
+
+	if chat_status.IsUserAdmin(chat, user.Id) {
+		_, err := message.ReplyText("Yeahhh I'm not gonna do that.")
+		error_handling.HandleErr(err)
+		return gotgbot.EndGroups{}
+	}
+
+	Banme, _ := chat.KickMember(user.Id)
+	if Banme {
+		_, err := message.ReplyText("Yeah right, get lost.")
+		return err
+	} else {
+		_, err := message.ReplyText("Huh? I can't :/")
 		return err
 	}
 }
@@ -260,16 +305,16 @@ func unban(bot ext.Bot, u *gotgbot.Update, args []string) error {
 		return gotgbot.EndGroups{}
 	}
 
-	userId, _ := extraction.ExtractUserAndText(message, args)
+	userID, reason := extraction.ExtractUserAndText(message, args)
 
-	if userId == 0 {
-		_, err := message.ReplyText("Try targeting a user next time bud.")
+	if userID == 0 {
+		_, err := message.ReplyText("You don't seem to be referring to a user.")
 		return err
 	}
 
-	_, err := chat.GetMember(userId)
+	_, err := chat.GetMember(userID)
 	if err != nil {
-		_, err := message.ReplyText("This user is ded m8.")
+		_, err := message.ReplyText("I can't seem to find this user.")
 		return err
 	}
 
@@ -279,27 +324,97 @@ func unban(bot ext.Bot, u *gotgbot.Update, args []string) error {
 		return err
 	}
 
-	if userId == bot.Id {
-		_, err := message.ReplyText("What exactly are you attempting to do?.")
+	if userID == bot.Id {
+		_, err := message.ReplyText("How would I unban myself if I wasn't here...?")
 		return err
 	}
 
-	if chat_status.IsUserInChat(chat, userId) {
-		_, err := message.ReplyText("This user is already in the group!")
+	if chat_status.IsUserInChat(chat, userID) {
+		_, err := message.ReplyText("Why are you trying to unban someone that's already in the chat?")
 		return err
 	}
 
-	_, err = chat.UnbanMember(userId)
+	_, err = chat.UnbanMember(userID)
+	unbanUser, _ := bot.GetChat(userID)
 	error_handling.HandleErr(err)
-	_, err = message.ReplyText("Fine, I'll allow it, this time...")
+
+	text := fmt.Sprintf("Yep, %v can join again!", helpers.MentionHtml(userID, fmt.Sprintf("%v", unbanUser.FirstName)))
+	text += fmt.Sprintf("\n<b>ID:</b> <code>%v</code>", userID)
+
+	if reason != "" {
+		text += fmt.Sprintf("\n<b>Reason:</b> %v", html.EscapeString(reason))
+	}
+
+	_, err = message.ReplyHTML(text)
+	return err
+}
+
+func sban(bot ext.Bot, u *gotgbot.Update, args []string) error {
+	chat := u.EffectiveChat
+	user := u.EffectiveUser
+	message := u.EffectiveMessage
+
+	message.Delete()
+
+	// Permission checks
+	if u.EffectiveChat.Type == "private" {
+		_, err := u.EffectiveMessage.ReplyText("This command is meant to be used in a group!")
+		return err
+	}
+
+	if !chat_status.RequireBotAdmin(chat, message) {
+		return gotgbot.EndGroups{}
+	}
+	if !chat_status.RequireUserAdmin(chat, message, user.Id) {
+		return gotgbot.EndGroups{}
+	}
+
+	userID, _ := extraction.ExtractUserAndText(message, args)
+	if userID == 0 {
+		_, err := message.ReplyText("You don't seem to be referring to a user.")
+		return err
+	}
+
+	member, err := chat.GetMember(userID)
+	if err != nil {
+		if err.Error() == "User not found" {
+			_, err = message.ReplyText("I can't seem to find this user.")
+		}
+		return err
+	}
+
+	userMember, _ := chat.GetMember(user.Id)
+	if !userMember.CanRestrictMembers && userMember.Status != "creator" {
+		_, err = message.ReplyText("You don't have permissions to ban users!")
+		return err
+	}
+
+	if chat_status.IsUserBanProtected(chat, userID, member) {
+		_, err := message.ReplyText("Why would I ban an admin? That sounds like a pretty dumb idea.")
+		return err
+	}
+
+	if userID == bot.Id {
+		_, err := message.ReplyText("I'm not gonna BAN myself, are you crazy?")
+		return err
+	}
+
+	_, err = chat.KickMember(userID)
+	if err != nil {
+		return err
+	}
+
+	_, err = message.Delete()
 	return err
 }
 
 func LoadBans(u *gotgbot.Updater) {
-	defer log.Println("Loading module bans")
+	defer log.Println("Loaded module: bans")
 	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("tban", noodlex.BotConfig.Prefix, tempBan))
 	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("ban", noodlex.BotConfig.Prefix, ban))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("sban", noodlex.BotConfig.Prefix, sban))
 	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("kick", noodlex.BotConfig.Prefix, kick))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("kickme", noodlex.BotConfig.Prefix, kickme))
 	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("unban", noodlex.BotConfig.Prefix, unban))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("kickme", noodlex.BotConfig.Prefix, kickme))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("banme", noodlex.BotConfig.Prefix, banme))
 }

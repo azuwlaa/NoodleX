@@ -1,22 +1,7 @@
-/*
- *    Copyright © 2020 Haruka Network Development
- *    This file is part of Haruka X.
- *
- *    Haruka X is free software: you can redistribute it and/or modify
- *    it under the terms of the Raphielscape Public License as published by
- *    the Devscapes Open Source Holding GmbH., version 1.d
- *
- *    Haruka X is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    Devscapes Raphielscape Public License for more details.
- *
- *    You should have received a copy of the Devscapes Raphielscape Public License
- */
-
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -60,7 +45,8 @@ func main() {
 	error_handling.FatalError(err)
 
 	// Add start handler
-	u.Dispatcher.AddHandler(handlers.NewArgsCommand("start", start))
+	// u.Dispatcher.AddHandler(handlers.NewArgsCommand("start", start))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("start", noodlex.BotConfig.Prefix, start))
 
 	// Create database tables if not already existing
 	sql.EnsureBotInDb(u)
@@ -99,8 +85,9 @@ func main() {
 	u.Idle()
 }
 
-func start(_ ext.Bot, u *gotgbot.Update, args []string) error {
+func start(b ext.Bot, u *gotgbot.Update, args []string) error {
 	msg := u.EffectiveMessage
+	user := u.EffectiveUser
 
 	if u.EffectiveChat.Type == "private" {
 		if len(args) != 0 {
@@ -116,9 +103,12 @@ func start(_ ext.Bot, u *gotgbot.Update, args []string) error {
 				return err
 			}
 		}
+	} else {
+		_, err := msg.ReplyTextf("Hey there, PM me if you have any questions on how to use me!")
+		return err
 	}
-
-	_, err := msg.ReplyTextf("Hi there! I'm a telegram group management bot, written in Go." +
-		"\nFor any questions or bug reports, you can head over to @NatalieSupport.")
+	pmHELP := fmt.Sprintf("Hey %v, my name is %v! I'm a group management"+
+		" bot and here to help managing your groups.", user.FirstName, b.FirstName)
+	_, err := msg.ReplyTextf(pmHELP)
 	return err
 }

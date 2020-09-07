@@ -1,19 +1,3 @@
-/*
- *    Copyright © 2020 Haruka Network Development
- *    This file is part of Haruka X.
- *
- *    Haruka X is free software: you can redistribute it and/or modify
- *    it under the terms of the Raphielscape Public License as published by
- *    the Devscapes Open Source Holding GmbH., version 1.d
- *
- *    Haruka X is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    Devscapes Raphielscape Public License for more details.
- *
- *    You should have received a copy of the Devscapes Raphielscape Public License
- */
-
 package admin
 
 import (
@@ -272,7 +256,7 @@ func adminlist(_ ext.Bot, u *gotgbot.Update) error {
 }
 
 func LoadAdmin(u *gotgbot.Updater) {
-	defer log.Println("Loading module admin")
+	defer log.Println("Loaded module: admin")
 	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("promote", noodlex.BotConfig.Prefix, promote))
 	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("demote", noodlex.BotConfig.Prefix, demote))
 	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("pin", noodlex.BotConfig.Prefix, pin))

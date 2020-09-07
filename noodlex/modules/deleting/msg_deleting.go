@@ -1,19 +1,3 @@
-/*
- *    Copyright © 2020 Haruka Network Development
- *    This file is part of Haruka X.
- *
- *    Haruka X is free software: you can redistribute it and/or modify
- *    it under the terms of the Raphielscape Public License as published by
- *    the Devscapes Open Source Holding GmbH., version 1.d
- *
- *    Haruka X is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    Devscapes Raphielscape Public License for more details.
- *
- *    You should have received a copy of the Devscapes Raphielscape Public License
- */
-
 package deleting
 
 import (
@@ -121,7 +105,7 @@ func delMessage(bot ext.Bot, u *gotgbot.Update) error {
 }
 
 func LoadDelete(u *gotgbot.Updater) {
-	defer log.Println("Loading module message_deleting")
+	defer log.Println("Loaded module: message_deleting")
 	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("purge", []rune{'/', '!', '?'}, purge))
 	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("del", noodlex.BotConfig.Prefix, delMessage))
 }

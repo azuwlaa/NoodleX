@@ -1,19 +1,3 @@
-/*
- *    Copyright © 2020 Haruka Network Development
- *    This file is part of Haruka X.
- *
- *    Haruka X is free software: you can redistribute it and/or modify
- *    it under the terms of the Raphielscape Public License as published by
- *    the Devscapes Open Source Holding GmbH., version 1.d
- *
- *    Haruka X is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    Devscapes Raphielscape Public License for more details.
- *
- *    You should have received a copy of the Devscapes Raphielscape Public License
- */
-
 package misc
 
 import (
@@ -101,7 +85,17 @@ var runStrings = [59]string{"Where do you think you're going?",
 	"What are you running after, a white rabbit?",
 	"As The Doctor would say... RUN!"}
 
-func getId(bot ext.Bot, u *gotgbot.Update, args []string) error {
+var yornStrings = [9]string{"Yes.",
+	"No.",
+	"Get Rekt.",
+	"Absolutely.",
+	"Nah.",
+	"No one cares.",
+	"I dont care!",
+	"Go for it!",
+	"In your dreams."}
+
+func getID(bot ext.Bot, u *gotgbot.Update, args []string) error {
 	userId := extraction.ExtractUser(u.EffectiveMessage, args)
 	if userId != 0 {
 		if u.EffectiveMessage.ReplyToMessage != nil && u.EffectiveMessage.ReplyToMessage.ForwardFrom != nil {
@@ -149,8 +143,9 @@ func info(bot ext.Bot, u *gotgbot.Update, args []string) error {
 		user = msg.From
 		userId = msg.From.Id
 
-	} else if _, err := strconv.Atoi(args[0]); msg.ReplyToMessage == nil && (len(args) <= 0 || (len(args) >= 1 && strings.HasPrefix(args[0], "@") && err != nil && msg.ParseEntities()[0].Type != "TEXT_MENTION")) {
-		_, err := msg.ReplyText("Yeah nah, this mans doesn't exist.")
+	} else if _, err := strconv.Atoi(args[0]); msg.ReplyToMessage == nil && (len(args) <= 0 || (len(args) >= 1 &&
+		strings.HasPrefix(args[0], "@") && err != nil && msg.ParseEntities()[0].Type != "TEXT_MENTION")) {
+		_, err := msg.ReplyText("You don't seem to be referring to a user.")
 		return err
 	} else {
 		return nil
@@ -168,7 +163,7 @@ func info(bot ext.Bot, u *gotgbot.Update, args []string) error {
 		text += fmt.Sprintf("\nUsername: @%v", user.Username)
 	}
 
-	text += fmt.Sprintf("\nPermanent user link: %v", helpers.MentionHtml(user.Id, fmt.Sprintf("%v %v", user.FirstName, user.LastName)))
+	text += fmt.Sprintf("\nPermanent user link: %v", helpers.MentionHtml(user.Id, fmt.Sprintf("link")))
 
 	fed := sql.GetChatFed(strconv.Itoa(chat.Id))
 	if fed != nil {
@@ -182,12 +177,11 @@ func info(bot ext.Bot, u *gotgbot.Update, args []string) error {
 	}
 
 	if user.Id == noodlex.BotConfig.OwnerId {
-		text += "\n\nDis nibba stronk af!"
+		text += "\n\n<i>This person is my creator! They have total power over me.</i>"
 	} else {
 		for _, id := range noodlex.BotConfig.SudoUsers {
 			if strconv.Itoa(user.Id) == id {
-				text += "\n\nThis person is one of my sudo users! " +
-					"Nearly as powerful as my owner - so watch it."
+				text += "\n\n<i>This person is one of my sudo users! Nearly as powerful as my owner - so watch it.</i>"
 			}
 		}
 	}
@@ -228,10 +222,19 @@ func runs(bot ext.Bot, u *gotgbot.Update) error {
 	return nil
 }
 
+func yorn(bot ext.Bot, u *gotgbot.Update) error {
+	rand.Seed(time.Now().Unix())
+	msg := u.EffectiveMessage
+	msg.ReplyText(yornStrings[rand.Intn(len(yornStrings))])
+	return nil
+}
+
 func LoadMisc(u *gotgbot.Updater) {
-	defer log.Println("Loading module misc")
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("id", noodlex.BotConfig.Prefix, getId))
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("info", noodlex.BotConfig.Prefix, info))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("ping", noodlex.BotConfig.Prefix, ping))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("runs", noodlex.BotConfig.Prefix, runs))
+	defer log.Println("Loaded module: misc")
+	CHandler := u.Dispatcher.AddHandler
+	CHandler(handlers.NewPrefixArgsCommand("id", noodlex.BotConfig.Prefix, getID))
+	CHandler(handlers.NewPrefixArgsCommand("info", noodlex.BotConfig.Prefix, info))
+	CHandler(handlers.NewPrefixCommand("ping", noodlex.BotConfig.Prefix, ping))
+	CHandler(handlers.NewPrefixCommand("runs", noodlex.BotConfig.Prefix, runs))
+	CHandler(handlers.NewRegex("(?i)y/n", yorn))
 }

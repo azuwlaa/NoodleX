@@ -1,18 +1,3 @@
-/*
- *    Copyright © 2020 Haruka Network Development
- *    This file is part of Haruka X.
- *
- *    Haruka X is free software: you can redistribute it and/or modify
- *    it under the terms of the Raphielscape Public License as published by
- *    the Devscapes Open Source Holding GmbH., version 1.d
- *
- *    Haruka X is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    Devscapes Raphielscape Public License for more details.
- *
- *    You should have received a copy of the Devscapes Raphielscape Public License
- */
 
 package warns
 
@@ -219,7 +204,7 @@ var TextAndGroupFilter handlers.FilterFunc = func(message *ext.Message) bool {
 }
 
 func LoadWarns(u *gotgbot.Updater) {
-	defer log.Println("Loading module warns")
+	defer log.Println("Loaded module: warns")
 	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("warn", noodlex.BotConfig.Prefix, warnUser))
 	u.Dispatcher.AddHandler(handlers.NewCallback("rmWarn", button))
 	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("resetwarns", noodlex.BotConfig.Prefix, resetWarns))

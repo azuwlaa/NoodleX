@@ -1,18 +1,3 @@
-/*
- *    Copyright © 2020 Haruka Network Development
- *    This file is part of Haruka X.
- *
- *    Haruka X is free software: you can redistribute it and/or modify
- *    it under the terms of the Raphielscape Public License as published by
- *    the Devscapes Open Source Holding GmbH., version 1.d
- *
- *    Haruka X is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    Devscapes Raphielscape Public License for more details.
- *
- *    You should have received a copy of the Devscapes Raphielscape Public License
- */
 
 package muting
 
@@ -173,7 +158,7 @@ func tempMute(bot ext.Bot, u *gotgbot.Update, args []string) error {
 }
 
 func LoadMuting(u *gotgbot.Updater) {
-	defer log.Println("Loading module muting")
+	defer log.Println("Loaded module: muting")
 	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("mute", noodlex.BotConfig.Prefix, mute))
 	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("unmute", noodlex.BotConfig.Prefix, unmute))
 	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("tmute", noodlex.BotConfig.Prefix, tempMute))

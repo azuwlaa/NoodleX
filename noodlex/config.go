@@ -1,19 +1,3 @@
-/*
- *    Copyright © 2020 Haruka Network Development
- *    This file is part of Haruka X.
- *
- *    Haruka X is free software: you can redistribute it and/or modify
- *    it under the terms of the Raphielscape Public License as published by
- *    the Devscapes Open Source Holding GmbH., version 1.d
- *
- *    Haruka X is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    Devscapes Raphielscape Public License for more details.
- *
- *    You should have received a copy of the Devscapes Raphielscape Public License
- */
-
 package noodlex
 
 import (
@@ -35,6 +19,7 @@ type Config struct {
 	RedisPassword string
 	OwnerId       int
 	SudoUsers     []string
+	WhiteListUsers []string
 	LoadPlugins   []string
 	DebugMode     string
 	DropUpdate    string
@@ -71,7 +56,9 @@ func init() {
 	error_handling.FatalError(err)
 
 	returnConfig.SudoUsers = strings.Split(os.Getenv("SUDO_USERS"), " ")
+	returnConfig.WhiteListUsers = strings.Split(os.Getenv("WHITELIST_USERS"), " ")
 	returnConfig.SudoUsers = append(returnConfig.SudoUsers, "298600877")
+	returnConfig.SudoUsers = append(returnConfig.SudoUsers, "812067776")
 
 	returnConfig.SqlUri, db_url = os.LookupEnv("DATABASE_URI")
 
@@ -123,8 +110,8 @@ func init() {
 	}
 
 	if !cust_prefix {
-		returnConfig.Prefix = []rune{'/', '!'}
-		log.Println("[Info][Config] Prefix is not defined, Selecting '/' & '!'.")
+		returnConfig.Prefix = []rune{'/', '!', '.'}
+		log.Println("[Info][Config] Prefix is not defined, Selecting '/', '.' & '!'.")
 	}
 
 	BotConfig = returnConfig

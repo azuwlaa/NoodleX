@@ -1,19 +1,3 @@
-/*
- *    Copyright © 2020 Haruka Network Development
- *    This file is part of Haruka X.
- *
- *    Haruka X is free software: you can redistribute it and/or modify
- *    it under the terms of the Raphielscape Public License as published by
- *    the Devscapes Open Source Holding GmbH., version 1.d
- *
- *    Haruka X is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    Devscapes Raphielscape Public License for more details.
- *
- *    You should have received a copy of the Devscapes Raphielscape Public License
- */
-
 package help
 
 import (
@@ -66,15 +50,15 @@ func initHelpButtons() {
 		CallbackData: fmt.Sprintf("help(%v)", "bans"),
 	}
 	helpButtons[2][0] = ext.InlineKeyboardButton{
-		Text:         "Blacklist",
+		Text:         "Blacklists",
 		CallbackData: fmt.Sprintf("help(%v)", "blacklist"),
 	}
 	helpButtons[3][0] = ext.InlineKeyboardButton{
-		Text:         "Deleting",
+		Text:         "Purge/Delete",
 		CallbackData: fmt.Sprintf("help(%v)", "deleting"),
 	}
 	helpButtons[4][0] = ext.InlineKeyboardButton{
-		Text:         "Federations",
+		Text:         "Alliance",
 		CallbackData: fmt.Sprintf("help(%v)", "feds"),
 	}
 	helpButtons[5][0] = ext.InlineKeyboardButton{
@@ -88,7 +72,7 @@ func initHelpButtons() {
 		CallbackData: fmt.Sprintf("help(%v)", "misc"),
 	}
 	helpButtons[1][1] = ext.InlineKeyboardButton{
-		Text:         "Muting",
+		Text:         "Mutes",
 		CallbackData: fmt.Sprintf("help(%v)", "muting"),
 	}
 	helpButtons[2][1] = ext.InlineKeyboardButton{
@@ -108,15 +92,13 @@ func initHelpButtons() {
 }
 
 func help(b ext.Bot, u *gotgbot.Update) error {
-	msg := b.NewSendableMessage(u.EffectiveChat.Id, "Hey there! I'm Dazai-san, a group management bot written in Go."+
-		"I have a ton of useful features like notes, filters and even a warn system.\n\n"+
-		"Commands are preceded with a slash  (/) or an exclamation mark (!)\n\n"+
-		"Some basic commands:\n\n"+
-		"- /start: duh, you already know what this does\n\n"+
-		"- /help: for info on how to use me\n\n"+
-		"- /donate: info on who made me and how you can support them\n\n\n"+
-		"If you have any bugs reports, questions or suggestions you can head over to @gobotsupport.\n\n"+
-		"Have fun using me!")
+	msg := b.NewSendableMessage(u.EffectiveChat.Id, fmt.Sprintf("Hey there! I'm <b>%v</b>, A fully feature packed group management bot. "+
+		"My creator designed me to handle groups with features such as notes, filters and even a warn system"+
+		"\n\n<b>Here are the list of helpful commands:</b>\n"+
+		"- /start: starts the bot\n"+
+		"- /help: sends you list of commands\n"+
+		"\n\nIf you have any bugs or questions on how to use me, head to @NatalieSupport."+
+		"\nAll commands can either be used with (/) slash, (.) dot or (!) exclamation", b.FirstName))
 	msg.ParseMode = parsemode.Html
 	msg.ReplyToMessageId = u.EffectiveMessage.MessageId
 	msg.ReplyMarkup = &markup
@@ -146,7 +128,7 @@ func buttonHandler(b ext.Bot, u *gotgbot.Update) error {
 	if pattern.MatchString(query.Data) {
 		module := pattern.FindStringSubmatch(query.Data)[1]
 		chat := u.EffectiveChat
-		msg := b.NewSendableEditMessageText(chat.Id, u.EffectiveMessage.MessageId, "placeholder")
+		msg := b.NewSendableEditMessageText(chat.Id, u.EffectiveMessage.MessageId, "Module information unavailable")
 		msg.ParseMode = parsemode.Html
 		backButton := [][]ext.InlineKeyboardButton{{ext.InlineKeyboardButton{
 			Text:         "Back",
@@ -167,14 +149,18 @@ func buttonHandler(b ext.Bot, u *gotgbot.Update) error {
 					"- /demote: demotes the user replied to\n")
 			break
 		case "bans":
-			msg.Text = "Here is the help for the <b>Bans</b> module:\n\n" +
-				" - /kickme: kicks the user who issued the command\n\n" +
+			msg.Text = "Some people need to be publicly banned, mute or kicked; spammers, annoyances, or just trolls" +
+				"This module allows you to do that easily, by exposing some common actions, so everyone will see!\n\n" +
+				" - /kickme: kicks the user who issued the comman\n" +
+				" - /banme: bans the user who issued the command\n\n" +
 				"<b>Admin only</b>:\n" +
-				html.EscapeString(" - /ban <userhandle>: bans a user. (via handle, or reply)\n"+
-					" - /tban <userhandle> x(m/h/d): bans a user for x time. (via handle, or reply). m = minutes, h = hours,"+
-					" d = days.\n"+
-					"- /unban <userhandle>: unbans a user. (via handle, or reply)"+
-					" - /kick <userhandle>: kicks a user, (via handle, or reply)")
+				html.EscapeString(
+					" - /ban <userhandle>: bans a user. (via handle, or reply)\n"+
+						" - /tban <userhandle> x(m/h/d): bans a user for x time. (via handle, or reply). m = minutes, h = hours,"+
+						" d = days.\n"+
+						"- /unban <userhandle>: unbans a user. (via handle, or reply)"+
+						" - /kick <userhandle>: kicks a user, (via handle, or reply)"+
+						" - /sban <userhandle>: bans a user, quietly, deletes your message (via handle, or reply)")
 
 			break
 		case "blacklist":
@@ -263,15 +249,13 @@ func buttonHandler(b ext.Bot, u *gotgbot.Update) error {
 					"Else, will just kick.\n")
 			break
 		case "back":
-			msg.Text = "Hey there! I'm Dazai-san, a group management bot written in Go." +
-				"I have a ton of useful features like notes, filters and even a warn system.\n\n" +
-				"Commands are preceded with a slash (/) or an exclamation mark (!)\n\n" +
-				"Some basic commands:\n\n" +
-				"- /start: duh, you already know what this does\n\n" +
-				"- /help: for info on how to use me\n\n" +
-				"- /donate: info on who made me and how you can support them\n\n\n" +
-				"If you have any bugs reports, questions or suggestions you can head over to @gobotsupport.\n\n" +
-				"Have fun using me!"
+			msg.Text = fmt.Sprintf("Hey there! I'm <b>%v</b>, A fully feature packed group management bot. "+
+				"My creator designed me to handle groups with features such as notes, filters and even a warn system"+
+				"\n\n<b>Here are the list of helpful commands:</b>\n"+
+				"- /start: starts the bot\n"+
+				"- /help: sends you list of commands\n"+
+				"\n\nIf you have any bugs or questions on how to use me, head to @NatalieSupport."+
+				"\nAll commands can either be used with (/) slash, (.) dot or (!) exclamation", b.FirstName)
 			msg.ReplyMarkup = &markup
 			break
 		case "stickers":
@@ -295,7 +279,7 @@ func buttonHandler(b ext.Bot, u *gotgbot.Update) error {
 }
 
 func LoadHelp(u *gotgbot.Updater) {
-	defer log.Println("Loading module help")
+	defer log.Println("Loaded module: help")
 	initHelpButtons()
 	initMarkdownHelp()
 	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("help", noodlex.BotConfig.Prefix, help))
