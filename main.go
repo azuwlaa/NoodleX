@@ -26,6 +26,7 @@ import (
 	"github.com/NoodleSoup/NoodleX/noodlex/modules/users"
 	"github.com/NoodleSoup/NoodleX/noodlex/modules/utils/caching"
 	"github.com/NoodleSoup/NoodleX/noodlex/modules/utils/error_handling"
+	"github.com/NoodleSoup/NoodleX/noodlex/modules/utils/helpers"
 	"github.com/NoodleSoup/NoodleX/noodlex/modules/warns"
 	"github.com/NoodleSoup/NoodleX/noodlex/modules/welcome"
 	"github.com/PaulSonOfLars/gotgbot"
@@ -108,7 +109,9 @@ func start(b ext.Bot, u *gotgbot.Update, args []string) error {
 		return err
 	}
 	pmHELP := fmt.Sprintf("Hey %v, my name is %v! I'm a group management"+
-		" bot and here to help managing your groups.", user.FirstName, b.FirstName)
-	_, err := msg.ReplyTextf(pmHELP)
+		" bot and here to help managing your groups."+
+		"\n\nTo find out full potential features check out /help, I'm maintained by %v.", user.FirstName, b.FirstName,
+		helpers.MentionHtml(noodlex.BotConfig.OwnerId, "this person"))
+	_, err := msg.ReplyHTML(pmHELP)
 	return err
 }
