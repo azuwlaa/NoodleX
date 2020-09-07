@@ -30,15 +30,22 @@ jobs:
         run: |
           go get -v -t -d
 
-      - name: Build
+      - name: Build for linux
         run: |
-          go build -o build/NoodleX-linux .
+          go build -o build/Linux/NoodleX-linux .
           
       - name: Build for windows
         run: |
-          env GOOS=windows GOARCH=amd64 go build -o build/NoodleX-windows.exe .
+          env GOOS=windows GOARCH=amd64 go build -o build/Windows/NoodleX-windows.exe .
           
-      - name: Upload builds
+      - name: Upload linux
         uses: actions/upload-artifact@v2
         with:
-          path: ./build/
+          name: NoodleX-linux 
+          path: ./build/Linux/NoodleX-linux
+      
+      - name: Upload Windows
+        uses: actions/upload-artifact@v2
+        with:
+          name: NoodleX-windows
+          path: ./build/Windows/ NoodleX-windows.exe 
