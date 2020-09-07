@@ -1,5 +1,5 @@
 # Noodle X
-[![Actions Status](https://github.com/HarukaNetwork/HarukaX/workflows/CI/badge.svg)](https://github.com/HarukaNetwork/HarukaX/actions)
+[![Actions Status](https://github.com/NoodleSoup/NoodleX/workflows/CI/badge.svg)](https://github.com/NoodleSoup/NoodleX/actions)
 
 Telegram bot written in Go. Currently in alpha. Contributions are welcome.
 
