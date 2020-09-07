@@ -1,4 +1,4 @@
-module github.com/HarukaNetwork/HarukaX
+module github.com/NoodleSoup/NoodleX
 
 go 1.23
 

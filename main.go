@@ -21,28 +21,28 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/HarukaNetwork/HarukaX/harukax/modules/rules"
-	"github.com/HarukaNetwork/HarukaX/harukax/modules/stickers"
-	"github.com/HarukaNetwork/HarukaX/harukax/modules/ud"
+	"github.com/NoodleSoup/NoodleX/noodlex/modules/rules"
+	"github.com/NoodleSoup/NoodleX/noodlex/modules/stickers"
+	"github.com/NoodleSoup/NoodleX/noodlex/modules/ud"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/HarukaNetwork/HarukaX/harukax"
-	"github.com/HarukaNetwork/HarukaX/harukax/modules/admin"
-	"github.com/HarukaNetwork/HarukaX/harukax/modules/bans"
-	"github.com/HarukaNetwork/HarukaX/harukax/modules/blacklist"
-	"github.com/HarukaNetwork/HarukaX/harukax/modules/deleting"
-	"github.com/HarukaNetwork/HarukaX/harukax/modules/feds"
-	"github.com/HarukaNetwork/HarukaX/harukax/modules/help"
-	"github.com/HarukaNetwork/HarukaX/harukax/modules/misc"
-	"github.com/HarukaNetwork/HarukaX/harukax/modules/muting"
-	"github.com/HarukaNetwork/HarukaX/harukax/modules/notes"
-	"github.com/HarukaNetwork/HarukaX/harukax/modules/sql"
-	"github.com/HarukaNetwork/HarukaX/harukax/modules/users"
-	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/caching"
-	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/error_handling"
-	"github.com/HarukaNetwork/HarukaX/harukax/modules/warns"
-	"github.com/HarukaNetwork/HarukaX/harukax/modules/welcome"
+	"github.com/NoodleSoup/NoodleX/noodlex"
+	"github.com/NoodleSoup/NoodleX/noodlex/modules/admin"
+	"github.com/NoodleSoup/NoodleX/noodlex/modules/bans"
+	"github.com/NoodleSoup/NoodleX/noodlex/modules/blacklist"
+	"github.com/NoodleSoup/NoodleX/noodlex/modules/deleting"
+	"github.com/NoodleSoup/NoodleX/noodlex/modules/feds"
+	"github.com/NoodleSoup/NoodleX/noodlex/modules/help"
+	"github.com/NoodleSoup/NoodleX/noodlex/modules/misc"
+	"github.com/NoodleSoup/NoodleX/noodlex/modules/muting"
+	"github.com/NoodleSoup/NoodleX/noodlex/modules/notes"
+	"github.com/NoodleSoup/NoodleX/noodlex/modules/sql"
+	"github.com/NoodleSoup/NoodleX/noodlex/modules/users"
+	"github.com/NoodleSoup/NoodleX/noodlex/modules/utils/caching"
+	"github.com/NoodleSoup/NoodleX/noodlex/modules/utils/error_handling"
+	"github.com/NoodleSoup/NoodleX/noodlex/modules/warns"
+	"github.com/NoodleSoup/NoodleX/noodlex/modules/welcome"
 	"github.com/PaulSonOfLars/gotgbot"
 	"github.com/PaulSonOfLars/gotgbot/ext"
 	"github.com/PaulSonOfLars/gotgbot/handlers"
@@ -56,7 +56,7 @@ func main() {
 	logger := zap.New(zapcore.NewCore(zapcore.NewConsoleEncoder(cfg), os.Stdout, zap.InfoLevel))
 	defer logger.Sync() // flushes buffer, if any
 	// Create updater instance
-	u, err := gotgbot.NewUpdater(logger, harukax.BotConfig.ApiKey)
+	u, err := gotgbot.NewUpdater(logger, noodlex.BotConfig.ApiKey)
 	error_handling.FatalError(err)
 
 	// Add start handler
@@ -86,7 +86,7 @@ func main() {
 	ud.LoadUd(u)
 	stickers.LoadStickers(u)
 
-	if harukax.BotConfig.DropUpdate == "True" {
+	if noodlex.BotConfig.DropUpdate == "True" {
 		log.Println("[Info][Core] Using Clean Long Polling")
 		err = u.StartCleanPolling()
 		error_handling.HandleErr(err)
