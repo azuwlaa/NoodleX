@@ -48,4 +48,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: NoodleX-windows
-          path: ./build/Windows/ NoodleX-windows.exe 
+          path: ./build/Windows/NoodleX-windows.exe 
