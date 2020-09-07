@@ -45,7 +45,6 @@ func main() {
 	error_handling.FatalError(err)
 
 	// Add start handler
-	// u.Dispatcher.AddHandler(handlers.NewArgsCommand("start", start))
 	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("start", noodlex.BotConfig.Prefix, start))
 
 	// Create database tables if not already existing
