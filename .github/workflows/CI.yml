@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        go: [ '1.14.6' ]
+        go: [ '1.15.1' ]
 
     steps:
       - name: Set up Go
@@ -30,6 +30,32 @@ jobs:
         run: |
           go get -v -t -d
 
-      - name: Build
+      - name: Build for linux
         run: |
-          go build .
+          go build -o build/Linux/NoodleX-linux .
+          
+      - name: Build for windows
+        run: |
+          env GOOS=windows GOARCH=amd64 go build -o build/Windows/NoodleX-windows.exe .
+      
+      - name: Build for Mac
+        run: |
+          env GOOS=darwin GOARCH=amd64 go build -o build/Mac/NoodleX-mac .
+          
+      - name: Upload linux
+        uses: actions/upload-artifact@v2
+        with:
+          name: NoodleX-linux 
+          path: ./build/Linux/NoodleX-linux
+      
+      - name: Upload Windows
+        uses: actions/upload-artifact@v2
+        with:
+          name: NoodleX-windows
+          path: ./build/Windows/NoodleX-windows.exe 
+     
+      - name: Upload Mac
+        uses: actions/upload-artifact@v2
+        with:
+          name: NoodleX-mac
+          path: ./build/Mac/NoodleX-mac
