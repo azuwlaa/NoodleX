@@ -5,7 +5,7 @@ Telegram bot written in Go. Currently in alpha. Contributions are welcome.
 
 A modular group management bot, written with the purpose of being highly concurrent.
 
-You can [find us on telegram](https://t.me/gobotsupport)! I'm usually online, so I can hopefully answer any questions you may have.
+You can [find us on telegram](https://t.me/NatalieSupport)! I'm usually online, so I can hopefully answer any questions you may have.
 
 
 
