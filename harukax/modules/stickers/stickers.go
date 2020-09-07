@@ -30,7 +30,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func stickerId(_ ext.Bot, u *gotgbot.Update) error {
+func stickerID(_ ext.Bot, u *gotgbot.Update) error {
 	msg := u.EffectiveMessage
 	if msg.ReplyToMessage != nil && msg.ReplyToMessage.Sticker != nil {
 		msg.ReplyHTMLf("Sticker  ID:\n<code>%v</code>", msg.ReplyToMessage.Sticker.FileId)
@@ -40,14 +40,14 @@ func stickerId(_ ext.Bot, u *gotgbot.Update) error {
 	return nil
 }
 
-func getSticker(bot ext.Bot, u *gotgbot.Update) error {
+func getSticker(b ext.Bot, u *gotgbot.Update) error {
 	msg := u.EffectiveMessage
 	chat := u.EffectiveChat
 
 	if msg.ReplyToMessage != nil && msg.ReplyToMessage.Sticker != nil && msg.ReplyToMessage.Sticker.IsAnimated == false {
-		fileId := msg.ReplyToMessage.Sticker.FileId
+		fileID := msg.ReplyToMessage.Sticker.FileId
 
-		inputFile, r, err := getInputFile(bot, fileId, "sticker.png")
+		inputFile, r, err := getInputFile(b, fileID, "sticker.png")
 		if r != nil {
 			defer r.Body.Close()
 		}
@@ -55,13 +55,13 @@ func getSticker(bot ext.Bot, u *gotgbot.Update) error {
 			return err
 		}
 
-		newDoc := bot.NewSendableDocument(chat.Id, "Sticker")
+		newDoc := b.NewSendableDocument(chat.Id, "Sticker")
 		newDoc.Document = inputFile
 		newDoc.Send()
 	} else if msg.ReplyToMessage != nil && msg.ReplyToMessage.Sticker != nil && msg.ReplyToMessage.Sticker.IsAnimated == true {
-		fileId := msg.ReplyToMessage.Sticker.FileId
+		fileID := msg.ReplyToMessage.Sticker.FileId
 
-		inputFile, r, err := getInputFile(bot, fileId, "sticker.rename")
+		inputFile, r, err := getInputFile(b, fileID, "sticker.rename")
 		if r != nil {
 			defer r.Body.Close()
 		}
@@ -69,7 +69,7 @@ func getSticker(bot ext.Bot, u *gotgbot.Update) error {
 			return err
 		}
 
-		newDoc := bot.NewSendableDocument(chat.Id, "Go to @Stickers bot and rename this file to .tgs then use "+
+		newDoc := b.NewSendableDocument(chat.Id, "Go to @Stickers bot and rename this file to .tgs then use "+
 			"/newanimated or /addsticker and send this file")
 		newDoc.Document = inputFile
 		newDoc.Send()
@@ -79,11 +79,11 @@ func getSticker(bot ext.Bot, u *gotgbot.Update) error {
 	return nil
 }
 
-func kangSticker(bot ext.Bot, u *gotgbot.Update) error {
+func kangSticker(b ext.Bot, u *gotgbot.Update) error {
 	msg := u.EffectiveMessage
 	user := u.EffectiveUser
 	packnum := 0
-	packname := fmt.Sprintf("a%v_by_%v", strconv.Itoa(user.Id), bot.UserName)
+	packname := fmt.Sprintf("a%v_by_%v", strconv.Itoa(user.Id), b.UserName)
 	if msg.ReplyToMessage == nil {
 		msg.ReplyText("What are you trying to kang?")
 		var err error
@@ -95,13 +95,13 @@ func kangSticker(bot ext.Bot, u *gotgbot.Update) error {
 		return err
 	}
 	if msg.ReplyToMessage.Sticker.IsAnimated == true {
-		packname = fmt.Sprintf("b%v_by_%v", strconv.Itoa(user.Id), bot.UserName)
+		packname = fmt.Sprintf("b%v_by_%v", strconv.Itoa(user.Id), b.UserName)
 	}
 	packnameFound := 0
 	maxStickers := 120
 	for packnameFound == 0 {
 		if msg.ReplyToMessage.Sticker.IsAnimated == true {
-			stickerset, err := bot.GetStickerSet(packname)
+			stickerset, err := b.GetStickerSet(packname)
 
 			if err != nil {
 				packnameFound = 1
@@ -110,12 +110,12 @@ func kangSticker(bot ext.Bot, u *gotgbot.Update) error {
 
 			if len(stickerset.Stickers) >= maxStickers {
 				packnum++
-				packname = fmt.Sprintf("b%v_%v_by_%v", strconv.Itoa(packnum), strconv.Itoa(user.Id), bot.UserName)
+				packname = fmt.Sprintf("b%v_%v_by_%v", strconv.Itoa(packnum), strconv.Itoa(user.Id), b.UserName)
 			} else {
 				packnameFound = 1
 			}
 		} else {
-			stickerset, err := bot.GetStickerSet(packname)
+			stickerset, err := b.GetStickerSet(packname)
 
 			if err != nil {
 				packnameFound = 1
@@ -124,20 +124,20 @@ func kangSticker(bot ext.Bot, u *gotgbot.Update) error {
 
 			if len(stickerset.Stickers) >= maxStickers {
 				packnum++
-				packname = fmt.Sprintf("a%v_%v_by_%v", strconv.Itoa(packnum), strconv.Itoa(user.Id), bot.UserName)
+				packname = fmt.Sprintf("a%v_%v_by_%v", strconv.Itoa(packnum), strconv.Itoa(user.Id), b.UserName)
 			} else {
 				packnameFound = 1
 			}
 		}
 	}
 	if msg.ReplyToMessage != nil {
-		var fileId string
+		var fileID string
 		var stickerEmoji string
 		var success bool
 		var err error
 		animTitle := "nil"
 		if msg.ReplyToMessage.Sticker != nil {
-			fileId = msg.ReplyToMessage.Sticker.FileId
+			fileID = msg.ReplyToMessage.Sticker.FileId
 		} else {
 			msg.ReplyText("Please reply to a sticker for me to kang.")
 		}
@@ -149,28 +149,28 @@ func kangSticker(bot ext.Bot, u *gotgbot.Update) error {
 		}
 
 		if msg.ReplyToMessage.Sticker.IsAnimated == true {
-			inputFile, r, err := getInputFile(bot, fileId, "sticker.tgs")
+			inputFile, r, err := getInputFile(b, fileID, "sticker.tgs")
 			if r != nil {
 				defer r.Body.Close()
 			}
 			if err != nil {
 				return err
 			}
-			success, err = bot.AddTgsStickerToSet(user.Id, packname, inputFile, stickerEmoji)
+			success, err = b.AddTgsStickerToSet(user.Id, packname, inputFile, stickerEmoji)
 			animTitle = "%v's animated pack %v"
 		} else {
-			inputFile, r, err := getInputFile(bot, fileId, "sticker.png")
+			inputFile, r, err := getInputFile(b, fileID, "sticker.png")
 			if r != nil {
 				defer r.Body.Close()
 			}
 			if err != nil {
 				return err
 			}
-			success, err = bot.AddPngStickerToSet(user.Id, packname, inputFile, stickerEmoji)
+			success, err = b.AddPngStickerToSet(user.Id, packname, inputFile, stickerEmoji)
 		}
 
 		if err != nil {
-			err := makeInternal(msg, user, fileId, stickerEmoji, bot, packname, packnum, animTitle)
+			err := makeInternal(msg, user, fileID, stickerEmoji, b, packname, packnum, animTitle)
 			if err != nil {
 				msg.ReplyText("Something went wrong with kanging.")
 				return err
@@ -186,20 +186,20 @@ func kangSticker(bot ext.Bot, u *gotgbot.Update) error {
 	return nil
 }
 
-func makeInternal(msg *ext.Message, user *ext.User, fileId string, emoji string, bot ext.Bot, packname string, packnum int, animTitle string) error {
+func makeInternal(msg *ext.Message, user *ext.User, fileID string, emoji string, bot ext.Bot, packname string, packnum int, animTitle string) error {
 	name := user.FirstName
-	extra_version := ""
+	extraVersion := ""
 	title := "%v's pack %v"
 	if packnum > 0 {
-		extra_version = " " + strconv.Itoa(packnum)
+		extraVersion = " " + strconv.Itoa(packnum)
 	}
 
 	if animTitle != "nil" {
 		title = animTitle
 	}
-	newStick := bot.NewSendableCreateNewStickerSet(user.Id, packname, fmt.Sprintf(title, name, extra_version), emoji)
+	newStick := bot.NewSendableCreateNewStickerSet(user.Id, packname, fmt.Sprintf(title, name, extraVersion), emoji)
 	if animTitle != "nil" {
-		inputFile, r, err := getInputFile(bot, fileId, "sticker.tgs")
+		inputFile, r, err := getInputFile(bot, fileID, "sticker.tgs")
 		if r != nil {
 			defer r.Body.Close()
 		}
@@ -208,7 +208,7 @@ func makeInternal(msg *ext.Message, user *ext.User, fileId string, emoji string,
 		}
 		newStick.TgsSticker = &inputFile
 	} else {
-		inputFile, r, err := getInputFile(bot, fileId, "sticker.png")
+		inputFile, r, err := getInputFile(bot, fileID, "sticker.png")
 		if r != nil {
 			defer r.Body.Close()
 		}
@@ -232,8 +232,8 @@ func makeInternal(msg *ext.Message, user *ext.User, fileId string, emoji string,
 	return nil
 }
 
-func getInputFile(bot ext.Bot, fileId string, fileName string) (ext.InputFile, *http.Response, error) {
-	file, err := bot.GetFile(fileId)
+func getInputFile(bot ext.Bot, fileID string, fileName string) (ext.InputFile, *http.Response, error) {
+	file, err := bot.GetFile(fileID)
 	var inputFile ext.InputFile
 	var r *http.Response
 	if err != nil {
@@ -251,9 +251,10 @@ func getInputFile(bot ext.Bot, fileId string, fileName string) (ext.InputFile, *
 	return inputFile, resp, nil
 }
 
+// LoadStickers - Add commands from module to the bot
 func LoadStickers(u *gotgbot.Updater) {
 	defer log.Println("Loading module stickers")
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("stickerid", harukax.BotConfig.Prefix, stickerId))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("stickerid", harukax.BotConfig.Prefix, stickerID))
 	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("getsticker", harukax.BotConfig.Prefix, getSticker))
 	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("kang", harukax.BotConfig.Prefix, kangSticker))
 }
