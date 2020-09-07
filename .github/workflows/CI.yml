@@ -37,6 +37,10 @@ jobs:
       - name: Build for windows
         run: |
           env GOOS=windows GOARCH=amd64 go build -o build/Windows/NoodleX-windows.exe .
+      
+      - name: Build for Mac
+        run: |
+          env GOOS=darwin GOARCH=amd64 go build -o build/Mac/NoodleX-mac .
           
       - name: Upload linux
         uses: actions/upload-artifact@v2
@@ -49,3 +53,9 @@ jobs:
         with:
           name: NoodleX-windows
           path: ./build/Windows/NoodleX-windows.exe 
+     
+      - name: Upload Mac
+        uses: actions/upload-artifact@v2
+        with:
+          name: NoodleX-mac
+          path: ./build/Mac/NoodleX-mac
