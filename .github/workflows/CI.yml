@@ -14,17 +14,17 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        go: [ '1.12', '1.13' ]
+        go: [ '1.14.6' ]
 
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v2
         with:
           go-version: ${{ matrix.go }}
         id: go
 
       - name: Checkout repo
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
 
       - name: Get dependencies
         run: |
