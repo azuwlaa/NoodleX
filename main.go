@@ -102,13 +102,13 @@ func start(b ext.Bot, u *gotgbot.Update, args []string) error {
 				log.Println(args[0])
 				return err
 			}
+		} else {
+			pmHelp := fmt.Sprintf("Hey %v, my name is %v! I'm a group management"+
+				" bot and here to help managing your groups.", user.FirstName, b.FirstName)
+			_, err := msg.ReplyTextf(pmHelp)
+			return err
 		}
-	} else {
-		_, err := msg.ReplyTextf("Hey there, PM me if you have any questions on how to use me!")
-		return err
 	}
-	pmHELP := fmt.Sprintf("Hey %v, my name is %v! I'm a group management"+
-		" bot and here to help managing your groups.", user.FirstName, b.FirstName)
-	_, err := msg.ReplyTextf(pmHELP)
+	_, err := msg.ReplyTextf("Hey there, PM me if you have any questions on how to use me!")
 	return err
 }
