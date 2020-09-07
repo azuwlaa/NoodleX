@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/HarukaNetwork/HarukaX/harukax"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/sql"
 	"github.com/HarukaNetwork/HarukaX/harukax/modules/utils/helpers"
 	"github.com/PaulSonOfLars/gotgbot"
@@ -40,6 +41,7 @@ var EnumFuncMap = map[int]func(ext.Bot, int, string) (*ext.Message, error){
 	sql.BUTTON_TEXT: ext.Bot.SendMessage,
 }
 
+// AltEnumFuncMap map of alternative welcome types to function to execute
 var AltEnumFuncMap = map[int]func(ext.Bot, int, ext.InputFile) (*ext.Message, error){
 	sql.STICKER:  ext.Bot.SendSticker,
 	sql.DOCUMENT: ext.Bot.SendDocument,
@@ -81,26 +83,30 @@ func newMember(bot ext.Bot, u *gotgbot.Update) error {
 
 			if welcPrefs.WelcomeType != sql.TEXT && welcPrefs.WelcomeType != sql.BUTTON_TEXT {
 				if welcPrefs.WelcomeType > 1 {
-					if welcPrefs.WelcomeType == 4 {
+					switch welcomeType := welcPrefs.WelcomeType; welcomeType {
+					case 4:
 						newPhoto := bot.NewSendablePhoto(chat.Id, welcPrefs.CustomWelcome)
 						newPhoto.Photo = bot.NewFileId(welcPrefs.Content)
 						_, err := newPhoto.Send()
 						if err != nil {
 							return nil
 						}
-					} else if welcPrefs.WelcomeType == 7 {
+						break
+					case 7:
 						newVideo := bot.NewSendableVideo(chat.Id, welcPrefs.CustomWelcome)
 						newVideo.Video = bot.NewFileId(welcPrefs.Content)
 						_, err := newVideo.Send()
 						if err != nil {
 							return nil
 						}
-					} else {
+						break
+					default:
 						inputFile := bot.NewFileId(welcPrefs.CustomWelcome)
 						_, err := AltEnumFuncMap[welcPrefs.WelcomeType](bot, chat.Id, inputFile)
 						if err != nil {
 							return err
 						}
+						break
 					}
 				} else {
 					_, err := EnumFuncMap[welcPrefs.WelcomeType](bot, chat.Id, welcPrefs.CustomWelcome)
@@ -213,10 +219,10 @@ func LoadWelcome(u *gotgbot.Updater) {
 	defer log.Println("Loading module welcome")
 	u.Dispatcher.AddHandler(handlers.NewMessage(Filters.NewChatMembers(), newMember))
 	u.Dispatcher.AddHandler(handlers.NewCallback("unmute", unmuteCallback))
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("welcome", []rune{'!', '/'}, welcome))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("setwelcome", []rune{'!', '/'}, setWelcome))
-	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("resetwelcome", []rune{'!', '/'}, resetWelcome))
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("cleanwelcome", []rune{'!', '/'}, cleanWelcome))
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("deljoined", []rune{'!', '/'}, delJoined))
-	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("welcomemute", []rune{'!', '/'}, welcomeMute))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("welcome", harukax.BotConfig.Prefix, welcome))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("setwelcome", harukax.BotConfig.Prefix, setWelcome))
+	u.Dispatcher.AddHandler(handlers.NewPrefixCommand("resetwelcome", harukax.BotConfig.Prefix, resetWelcome))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("cleanwelcome", harukax.BotConfig.Prefix, cleanWelcome))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("deljoined", harukax.BotConfig.Prefix, delJoined))
+	u.Dispatcher.AddHandler(handlers.NewPrefixArgsCommand("welcomemute", harukax.BotConfig.Prefix, welcomeMute))
 }
