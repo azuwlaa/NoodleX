@@ -1,4 +1,4 @@
-# Haruka X
+# Noodle X
 [![Actions Status](https://github.com/HarukaNetwork/HarukaX/workflows/CI/badge.svg)](https://github.com/HarukaNetwork/HarukaX/actions)
 
 Telegram bot written in Go. Currently in alpha. Contributions are welcome.
@@ -23,6 +23,7 @@ The available fields for the .env file are as follows:
 * `SUDO_USERS`: A list of userIDs, separated by spaces, who should have sudo access to the bot
 * `HEROKU`: Setting this to **anything** will activate it. Use if you're using a heroku database
 * `DEBUG`: Setting this to **anything** will activate it. Use it if you're debugging something.
+* `PREFIX`: Setting this to any character or symbol will use that as prefix for the commands. Note: Needs to be separated by spaces e.g. **"/ ."**.
 
 
 ## Starting the bot
@@ -33,4 +34,4 @@ It's that simple.
 ## Download source
 Contributions to this project are welcome.
 To download the source, get it like any other Go project:
- `go get -u github.com/NoodleSoup/HarukaX`.
+ `go get -u github.com/NoodleSoup/NoodleX`.
