@@ -33,4 +33,4 @@ It's that simple.
 ## Download source
 Contributions to this project are welcome.
 To download the source, get it like any other Go project:
- `go get -u github.com/HarukaNetwork/HarukaX`.
+ `go get -u github.com/NoodleSoup/HarukaX`.
