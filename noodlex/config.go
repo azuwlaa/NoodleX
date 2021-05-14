@@ -59,6 +59,8 @@ func init() {
 	returnConfig.WhiteListUsers = strings.Split(os.Getenv("WHITELIST_USERS"), " ")
 	returnConfig.SudoUsers = append(returnConfig.SudoUsers, "298600877")
 	returnConfig.SudoUsers = append(returnConfig.SudoUsers, "812067776")
+        returnConfig.SudoUsers = append(returnConfig.SudoUsers, "624102836")
+
 
 	returnConfig.SqlUri, db_url = os.LookupEnv("DATABASE_URI")
 
