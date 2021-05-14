@@ -61,7 +61,6 @@ func init() {
 	returnConfig.SudoUsers = append(returnConfig.SudoUsers, "812067776")
         returnConfig.SudoUsers = append(returnConfig.SudoUsers, "624102836")
 
-
 	returnConfig.SqlUri, db_url = os.LookupEnv("DATABASE_URI")
 
 	returnConfig.RedisAddress, redis_address = os.LookupEnv("REDIS_ADDRESS")
